@@ -29,8 +29,8 @@ function vlog () {
 
     if test "${verboseFlag}" = "true" ; then
         echo "${2} ${1}"
-        test "${sysLog}" = "true" && logger -p user.notice -t "${0##*/}" "$1"
-        test "${#logFile}" -gt "1" && echo "$(date) ${1}" >> "${logFile}"
+        if test "${sysLog}" = "true" ; then logger -p user.notice -t "${0##*/}" "$1" ; fi
+        if test "${#logFile}" -gt "1" ; then echo "$(date) ${1}" >> "${logFile}" ; fi
     fi
 
 }
@@ -39,8 +39,8 @@ function err () {
 
     echo "${2} ${1}" >&2
 
-    test "${sysLog}" = "true" && logger -p user.error -t "${0##*/}" "$1"
-    test "${#logFile}" -gt "1" && echo "$(date) error: ${1}" >> "${logFile}"
+    if test "${sysLog}" = "true" ; then logger -p user.error -t "${0##*/}" "$1" ; fi
+    if test "${#logFile}" -gt "1" ; then echo "$(date) error: ${1}" >> "${logFile}" ; fi
 
 }
 
@@ -68,10 +68,19 @@ function checks () {
 
 function setup () {
 
-    test "${#logFile}" -gt "1" && { touch "${logFile}" ; echo "GRUB-BTRFSD log $(date)" >> "${logFile}" ; }
-    test "${verboseFlag}" = "true" && inotifyQuiet="" || inotifyQuiet=" -q -q "
-    test "${recursiveFlag}" = "true" && inotifyRecursive=" -r " || inotifyRecursive=""
-    test "${timeshiftAuto}" = "true" && { watchTime=15 ; [ -d /run/timeshift ] || mkdir /run/timeshift ; } || watchTime=0
+    if test "${#logFile}" -gt "1" ; then
+        touch "${logFile}" ; echo "GRUB-BTRFSD log $(date)" >> "${logFile}"
+    fi
+
+    if test "${verboseFlag}" = "true" ; then inotifyQuiet="" ; else inotifyQuiet=" -q -q " ; fi
+    if test "${recursiveFlag}" = "true" ; then inotifyRecursive=" -r " ; else inotifyRecursive="" ; fi
+
+    if test "${timeshiftAuto}" = "true" ; then
+        watchTime=15
+        test -d "/run/timeshift" || mkdir /run/timeshift
+    else
+        watchTime=0
+    fi
 
 }
 
