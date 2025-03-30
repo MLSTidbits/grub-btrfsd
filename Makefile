@@ -28,8 +28,6 @@ debian:
 
 	@echo "$(VERSION)" > $(PACKAGE_DIR)/usr/share/doc/$(PACKAGE)/version
 
-	@scripts/sum
-
 	@pandoc -s -t man man/$(PACKAGE).8.md -o \
 		$(PACKAGE_DIR)/usr/share/man/man8/$(PACKAGE).8
 	@gzip --best -nvf $(PACKAGE_DIR)/usr/share/man/man8/$(PACKAGE).8
@@ -43,6 +41,7 @@ debian:
 	@gzip -d $(PACKAGE_DIR)/DEBIAN/*.gz
 	@mv $(PACKAGE_DIR)/DEBIAN/changelog.DEBIAN $(PACKAGE_DIR)/DEBIAN/changelog
 
+	@scripts/sum
 	@scripts/set-control
 	@scripts/mkdeb
 
