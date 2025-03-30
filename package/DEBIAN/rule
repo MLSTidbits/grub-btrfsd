@@ -1,0 +1,5 @@
+#!/bin/env make -f
+
+
+%:
+    dh "${@}" --with systemd

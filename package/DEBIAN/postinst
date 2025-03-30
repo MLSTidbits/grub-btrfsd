@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -eo pipefail
+
+case "${1}" in
+    configure|upgrade|reinstall )
+        if systemctl is-active --quiet grub-btrfsd.service ;
+            then systemctl daemon-reload
+        else
+            systemctl enable --now grub-btrfsd.service
+        fi
+    ;;
+
+    *)
+        echo "postinst called with unknown argument: $1" >&2
+        exit 1
+    ;;
+esac

@@ -1,150 +1,69 @@
-PKGNAME ?= grub-btrfs
-PREFIX ?= /usr
+#!/bin/env make -f
 
-INITCPIO ?= false
-SYSTEMD ?= true
-OPENRC ?= false
+PACKAGE = $(shell basename $(shell pwd))
+VERSION = $(shell bash scripts/set-version)
 
-BOOT_DIR_DEBIAN ?= /boot/grub
-BOOT_DIR_FEDORA ?= /boot/grub2
+MAINTAINER = $(shell git config user.name) <$(shell git config user.email)>
 
-GRUB_UPDATE_EXCLUDE ?= false
-INSTALL_DOCS ?= true
+INSTALL = btrfs-progs, grub2-common, inotify-tools
+BUILD = debhelper (>= 11), git, make (>= 4.1), dpkg-dev
 
-SHARE_DIR = $(DESTDIR)$(PREFIX)/share
-LIB_DIR = $(DESTDIR)$(PREFIX)/lib
-BIN_DIR = $(DESTDIR)$(PREFIX)/sbin
-MAN_DIR = $(SHARE_DIR)/man
+HOMEPAGE = https://github.com/MichaelSchaecher/dpkg-changelog
 
-TEMP_DIR = ./temp
+PACKAGE_DIR = package
 
+ARCH = $(shell dpkg --print-architecture)
 
-.PHONY: install uninstall clean help
+export PACKAGE_DIR PACKAGE VERSION MAINTAINER INSTALL BUILD HOMEPAGE ARCH
+
+# Phony targets
+.PHONY: all debian clean help
+
+# Default target
+all: debian
+
+debian:
+
+	@echo "Building package $(PACKAGE) version $(VERSION)"
+
+	@echo "$(VERSION)" > $(PACKAGE_DIR)/usr/share/doc/$(PACKAGE)/version
+
+	@scripts/set-control
+	@scripts/sum
+
+	@pandoc -s -t man man/$(PACKAGE).8.md -o \
+		$(PACKAGE_DIR)/usr/share/man/man8/$(PACKAGE).8
+	@gzip --best -nvf $(PACKAGE_DIR)/usr/share/man/man8/$(PACKAGE).8
+
+	@pandoc -s -t man man/grub-btrfs.8.md -o \
+		$(PACKAGE_DIR)/usr/share/man/man8/grub-btrfs.8
+	@gzip --best -nvf $(PACKAGE_DIR)/usr/share/man/man8/grub-btrfs.8
+
+	@dpkg-changelog $(PACKAGE_DIR)/DEBIAN/changelog
+	@dpkg-changelog $(PACKAGE_DIR)/usr/share/doc/$(PACKAGE)/changelog
+	@gzip -d $(PACKAGE_DIR)/DEBIAN/*.gz
+	@mv $(PACKAGE_DIR)/DEBIAN/changelog.DEBIAN $(PACKAGE_DIR)/DEBIAN/changelog
+
+	@scripts/mkdeb
 
 install:
 
-	@echo "					     	   Installing "
-	@echo
-	@echo "       ::::::::  :::::::::  :::    ::: :::::::::               ::::::::: ::::::::::: :::::::::  :::::::::: ::::::::      "
-	@echo "      :+:    :+: :+:    :+: :+:    :+: :+:    :+:              :+:    :+:    :+:     :+:    :+: :+:       :+:    :+:     "
-	@echo "     +:+        +:+    +:+ +:+    +:+ +:+    +:+              +:+    +:+    +:+     +:+    +:+ +:+       +:+             "
-	@echo "    :#:        +#++:++#:  +#+    +:+ +#++:++#+ +#++:++#++:++ +#++:++#+     +#+     +#++:++#:  :#::+::#  +#++:++#++       "
-	@echo "   +#+   +#+# +#+    +#+ +#+    +#+ +#+    +#+              +#+    +#+    +#+     +#+    +#+ +#+              +#+        "
-	@echo "  #+#    #+# #+#    #+# #+#    #+# #+#    #+#              #+#    #+#    #+#     #+#    #+# #+#       #+#    #+#         "
-	@echo "  ########  ###    ###  ########  #########               #########     ###     ###    ### ###        ########           "
-	@echo
-	@echo "  For further information visit https://github.com/Antynea/grub-btrfs or read the man page: 'man grub-btrfs'"
-	@echo
-	@rm -rf "${TEMP_DIR}"
-	@mkdir "${TEMP_DIR}"
-	@chmod 777 ${TEMP_DIR}
-	@cp manpages/grub-btrfs.8.man ${TEMP_DIR}/grub-btrfs.8
-	@if test "$(INSTALL_DOCS)" = true; then \
-		echo "Installing manpages..."; \
-		install -Dm644 -t "${MAN_DIR}/man8" "${TEMP_DIR}/grub-btrfs.8"; \
-	fi
-	@cp manpages/grub-btrfsd.8.man ${TEMP_DIR}/grub-btrfsd.8
-	@if test "$(INSTALL_DOCS)" = true; then \
-		install -Dm644 -t "${MAN_DIR}/man8" "${TEMP_DIR}/grub-btrfsd.8"; \
-	fi
-	@install -Dm755 -t "$(DESTDIR)/etc/grub.d/" 41_snapshots-btrfs
-	@install -Dm644 -t "$(DESTDIR)/etc/default/grub-btrfs/" config
-	@install -Dm744 -t "$(BIN_DIR)/" grub-btrfsd;
-	@# Systemd init system
-	@if test "$(SYSTEMD)" = true; then \
-		echo "Installing systemd .service file"; \
-		install -Dm644 -t "$(LIB_DIR)/systemd/system/" grub-btrfsd.service; \
-	 fi
-	@# OpenRC init system
-	@if test "$(OPENRC)" = true; then \
-		echo "Installing openRC init.d & conf.d file"; \
-		install -Dm744 grub-btrfsd.initd "$(DESTDIR)/etc/init.d/grub-btrfsd"; \
-		install -Dm644 grub-btrfsd.confd "$(DESTDIR)/etc/conf.d/grub-btrfsd"; \
-	 fi
-	@# Arch Linux like distros only :
-	@if test "$(INITCPIO)" = true; then \
-		echo "Installing initcpio hook"; \
-		install -Dm644 "initramfs/Arch Linux/overlay_snap_ro-install" "$(LIB_DIR)/initcpio/install/grub-btrfs-overlayfs"; \
-		install -Dm644 "initramfs/Arch Linux/overlay_snap_ro-hook" "$(LIB_DIR)/initcpio/hooks/grub-btrfs-overlayfs"; \
-	 fi
-	@if test "$(INSTALL_DOCS)" = true; then \
-		echo "Installing docs..."; \
-		install -Dm644 -t "$(SHARE_DIR)/licenses/$(PKGNAME)/" LICENSE; \
-		install -Dm644 -t "$(SHARE_DIR)/doc/$(PKGNAME)/" README.md; \
-		install -Dm644 "initramfs/readme.md" "$(SHARE_DIR)/doc/$(PKGNAME)/initramfs-overlayfs.md"; \
-	fi
-	@if command -v grub-mkconfig > /dev/null && [ -e "$(BOOT_DIR_DEBIAN)/grub.cfg" ] && test "$(GRUB_UPDATE_EXCLUDE)" = false; then \
-		echo "Updating the GRUB menu..."; \
-		grub-mkconfig -o "$(BOOT_DIR_DEBIAN)/grub.cfg"; \
-	 fi
-	@if command -v grub2-mkconfig > /dev/null && [ -e "$(BOOT_DIR_FEDORA)/grub.cfg" ] && test "$(GRUB_UPDATE_EXCLUDE)" = false; then \
-		echo "Updating the GRUB menu..."; \
-		grub2-mkconfig -o "$(BOOT_DIR_FEDORA)/grub.cfg"; \
-	fi
-
-uninstall:
-	@echo "Uninstalling grub-btrfs"
-	@if test "$(shell id -u)" != 0; then \
-		echo "You are not root, run this target as root please."; \
-		exit 1; \
-	fi
-	@grub_dirname="$$(grep -oP '^[[:space:]]*GRUB_BTRFS_GRUB_DIRNAME=\K.*' "$(DESTDIR)/etc/default/grub-btrfs/config" | sed "s|\s*#.*||;s|(\s*\(.\+\)\s*)|\1|;s|['\"]||g")"; \
-	 rm -f "$${grub_dirname:-/boot/grub}/grub-btrfs.cfg"
-	@rm -f "$(DESTDIR)/etc/default/grub-btrfs/config"
-	@rm -f "$(DESTDIR)/etc/grub.d/41_snapshots-btrfs"
-	@rm -f "$(LIB_DIR)/systemd/system/grub-btrfsd.service"
-	@rm -f "$(BIN_DIR)/grub-btrfsd;"
-	@rm -f "$(DESTDIR)/etc/init.d/grub-btrfsd;"
-	@rm -f "$(DESTDIR)/etc/conf.d/grub-btrfsd;"
-	@rm -f "$(LIB_DIR)/initcpio/install/grub-btrfs-overlayfs"
-	@rm -f "$(LIB_DIR)/initcpio/hooks/grub-btrfs-overlayfs"
-	@rm -f "$(MAN_DIR)/man8/grub-btrfs.8.bz2"
-	@rm -f "$(MAN_DIR)/man8/grub-btrfsd.8.bz2"
-	@# Arch Linux UNlike distros only :
-	@if test "$(INITCPIO)" != true && test -d "$(LIB_DIR)/initcpio"; then \
-		rmdir --ignore-fail-on-non-empty "$(LIB_DIR)/initcpio/install" || :; \
-		rmdir --ignore-fail-on-non-empty "$(LIB_DIR)/initcpio/hooks" || :; \
-		rmdir --ignore-fail-on-non-empty "$(LIB_DIR)/initcpio" || :; \
-	 fi
-	@rm -f "$(SHARE_DIR)/doc/$(PKGNAME)/README.md"
-	@rm -f "$(SHARE_DIR)/doc/$(PKGNAME)/initramfs-overlayfs.md"
-	@rm -f "$(SHARE_DIR)/licenses/$(PKGNAME)/LICENSE"
-	@rmdir --ignore-fail-on-non-empty "$(SHARE_DIR)/doc/$(PKGNAME)/" || :
-	@rmdir --ignore-fail-on-non-empty "$(SHARE_DIR)/licenses/$(PKGNAME)/" || :
-	@rmdir --ignore-fail-on-non-empty "$(DESTDIR)/etc/default/grub-btrfs" || :
-	@if command -v grub-mkconfig > /dev/null && [ -e "$(BOOT_DIR_DEBIAN)/grub.cfg" ] && test "$(GRUB_UPDATE_EXCLUDE)" = false; then \
-                echo "Updating the GRUB menu..."; \
-                grub-mkconfig -o "$(BOOT_DIR_DEBIAN)/grub.cfg"; \
-         fi
-	@if command -v grub2-mkconfig > /dev/null && [ -e "$(BOOT_DIR_FEDORA)/grub.cfg" ] && test "$(GRUB_UPDATE_EXCLUDE)" = false; then \
-		echo "Updating the GRUB menu..."; \
-		grub2-mkconfig -o "$(BOOT_DIR_FEDORA)/grub.cfg"; \
-	fi
+	@dpkg -i $(PACKAGE)_$(VERSION)_$(ARCH).deb
 
 clean:
-	@echo "Deleting ./temp"
-	@rm -rf "${TEMP_DIR}"
+	@rm -vf $(PACKAGE_DIR)/DEBIAN/control \
+		$(PACKAGE_DIR)/DEBIAN/changelog \
+		$(PACKAGE_DIR)/DEBIAN/md5sums \
+		$(PACKAGE_DIR)/usr/share/doc/$(PACKAGE)/*.gz \
+		$(PACKAGE_DIR)/usr/share/man/man8/$(PACKAGE).8.gz \
 
 help:
-	@echo
-	@echo "Usage: $(MAKE) [ <parameter>=<value> ... ] [ <action> ]"
-	@echo "Example: $(MAKE) OPENRC=true SYSTEMD=false install"
-	@echo
-	@echo "  actions: install"
-	@echo "           uninstall"
-	@echo "           help"
-	@echo
-	@echo "  parameter           | type | description                                           | defaults"
-	@echo "  --------------------+------+-------------------------------------------------------+----------------------------"
-	@echo "  DESTDIR             | path | install destination                                   | <unset>"
-	@echo "  PREFIX              | path | system tree prefix                                    | '/usr'"
-	@echo "  BOOT_DIR_DEBIAN     | path | boot data location (Debian, Ubuntu, Gentoo, Arch...)  | '/boot/grub'"
-	@echo "  BOOT_DIR_FEDORA     | path | boot data location (Fedora, RHEL, CentOS, Rocky...)   | '/boot/grub2'"
-	@echo "  SHARE_DIR           | path | shared data location                                  | '\$$(DESTDIR)\$$(PREFIX)/share'"
-	@echo "  LIB_DIR             | path | system libraries location                             | '\$$(DESTDIR)\$$(PREFIX)/lib'"
-	@echo "  PKGNAME             | name | name of the distributed package                       | 'grub-btrfs'"
-	@echo "  INITCPIO            | bool | include mkinitcpio hook                               | false"
-	@echo "  SYSTEMD             | bool | include unit files                                    | true"
-	@echo "  OPENRC              | bool | include OpenRc daemon                                 | false"
-	@echo "  GRUB_UPDATE_EXCLUDE | bool | Do not update grub after installation                 | false"
-	@echo
+	@echo "Usage: make [target] <variables>"
+	@echo ""
+	@echo "Targets:"
+	@echo "  all       - Build the debian package and install it"
+	@echo "  debian    - Build the debian package"
+	@echo "  install   - Install the debian package"
+	@echo "  clean     - Clean up build files"
+	@echo "  help      - Display this help message"
+	@echo ""
