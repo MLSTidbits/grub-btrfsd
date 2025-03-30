@@ -4,8 +4,8 @@ set -eo pipefail
 
 case "${1}" in
     configure|upgrade|reinstall )
-        if systemctl is-active --quiet grub-btrfsd.service ;
-            then systemctl daemon-reload
+        if systemctl is-active --quiet grub-btrfsd.service ; then
+            systemctl daemon-reload ; systemctl restart grub-btrfsd.service
         else
             systemctl enable --now grub-btrfsd.service
         fi
