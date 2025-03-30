@@ -83,14 +83,20 @@ if ! type btrfs >/dev/null 2>&1; then print_error "btrfs-progs isn't installed";
 printf "Detecting snapshots ...\n" >&2 ;
 
 ## Submenu name
-distro=$(awk -F "=" '/^NAME=/ {gsub(/"/, "", $2); print $2}' /etc/os-release) # escape '
-submenuname=${GRUB_BTRFS_SUBMENUNAME:-"${distro:-Linux} snapshots"}
+# distro=$(awk -F "=" '/^NAME=/ {gsub(/"/, "", $2); print $2}' /etc/os-release) # escape '
+source /etc/os-release
+
+submenuname=${GRUB_BTRFS_SUBMENUNAME:-"${NAME:-Linux} snapshots"}
 ## Limit snapshots to show in the Grub menu (default=50)
 limit_snap_show="${GRUB_BTRFS_LIMIT:-50}"
 ## How to sort snapshots list
 btrfs_subvolume_sort="--sort=${GRUB_BTRFS_SUBVOLUME_SORT:-"-rootid"}"
+
 ## Customize GRUB directory, where "grub.cfg" file is saved
-grub_directory=${GRUB_BTRFS_GRUB_DIRNAME:-"/boot/grub"}
+test -d "/boot/efi/EFI/${ID}" &&
+grub_directory=${GRUB_BTRFS_GRUB_DIRNAME:-"/boot/efi/EFI/${ID}"} ||
+grub_directory=${GRUB_BTRFS_GRUB_DIRNAME:-"/boot/efi/EFI/ubuntu"}
+
 ## Customize BOOT directory, where kernels/initrams/microcode is saved.
 boot_directory=${GRUB_BTRFS_BOOT_DIRNAME:-"/boot"}
 ## Customize GRUB-BTRFS.cfg directory, where "grub-btrfs.cfg" file is saved
@@ -121,25 +127,6 @@ boot_uuid_subvolume=$(btrfs subvolume show "$boot_directory" 2>/dev/null) || boo
 boot_uuid_subvolume=$(awk -F":" 'match($1, /(^[ \t]+UUID)/) {sub(/^[ \t]+/, "", $2); print $2}' <<< "$boot_uuid_subvolume") # UUID of the boot subvolume '
 boot_hs=$(${grub_probe} --device ${boot_device} --target="hints_string" 2>/dev/null) # hints string
 boot_fs=$(${grub_probe} --device ${boot_device} --target="fs" 2>/dev/null) # Type filesystem of boot device
-
-# Enable LUKS encrypted devices support
-case "$(echo "$GRUB_BTRFS_ENABLE_CRYPTODISK" | tr '[:upper:]' '[:lower:]')" in
-    true)
-            list_insmods=()
-            list_insmods+=("insmod gzio")
-            list_insmods+=("insmod part_gpt")
-            list_insmods+=("insmod cryptodisk")
-            list_insmods+=("insmod luks")
-            list_insmods+=("insmod gcry_rijndael")
-            list_insmods+=("insmod gcry_rijndael")
-            list_insmods+=("insmod gcry_sha256")
-            list_insmods+=("insmod ${boot_fs}")
-            list_insmods+=("cryptomount -u $(echo $GRUB_CMDLINE_LINUX_DEFAULT | grep -o -P '(?<=cryptdevice=UUID=).*(?=:cryptdev)')")
-            ;;
-    *)
-            list_insmods=("insmod ${boot_fs}")
-            ;;
-esac
 
 ## Parameters passed to the kernel
 kernel_parameters="$GRUB_CMDLINE_LINUX $GRUB_CMDLINE_LINUX_DEFAULT $GRUB_BTRFS_SNAPSHOT_KERNEL_PARAMETERS"
@@ -237,12 +224,8 @@ make_menu_entries()
         if [ x\$feature_all_video_module = xy ]; then
         insmod all_video
         fi
-        set gfxpayload=keep"
-        for j in "${insmods[@]}"; do
-            entry "\
-        ${j}"
-        done
-        entry "\
+        set gfxpayload=keep
+        insmod ${boot_fs}
         if [ x\$feature_platform_search_hint = xy ]; then
             search --no-floppy --fs-uuid  --set=root ${boot_hs} ${boot_uuid}
         else
@@ -351,7 +334,7 @@ snapshot_list()
         # Parse Snapper & timeshift & yabsnap information
         local type_snapshot="N/A"
         local description_snapshot="N/A"
-        
+
         # path to yabsnap snapshot meta data
         local yabsnap_info="$grub_btrfs_mount_point/${path_snapshot%"/"*}/$(echo "${snap[13]}" | awk -F'/' '{print $3 "-meta.json"}')"
 
@@ -564,7 +547,6 @@ boot_bounded()
         detect_rootflags
         title_format
         boot_dir_root_grub="$(make_system_path_relative_to_its_root "${boot_dir}")" # convert "boot_directory" to root of GRUB (e.g /boot become /)
-        insmods=("${list_insmods[@]##*"/"}")
         make_menu_entries
         # show snapshot found during run "grub-mkconfig"
         if [ "${GRUB_BTRFS_SHOW_SNAPSHOTS_FOUND:-"true"}" = "true" ]; then
