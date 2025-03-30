@@ -39,7 +39,7 @@
 set -e
 
 sysconfdir="/etc"
-grub_btrfs_config="${sysconfdir}/default/grub-btrfs/config"
+grub_btrfs_config="${sysconfdir}/default/grub-btrfsd"
 
 [ -f "$grub_btrfs_config" ] && . "$grub_btrfs_config"
 [ -f "${sysconfdir}/default/grub" ] && . "${sysconfdir}/default/grub"
@@ -145,6 +145,7 @@ if [ "${root_uuid}" = "" ] || [ "${GRUB_DISABLE_LINUX_UUID}" = "true" ] \
 else
     LINUX_ROOT_DEVICE=UUID=${root_uuid}
 fi
+
 }
 ## Detect rootflags
 detect_rootflags()
@@ -499,16 +500,17 @@ title_format()
     title_submenu="|" # "|" is for visuals only
     [[ -z "${GRUB_BTRFS_TITLE_FORMAT}" ]] && GRUB_BTRFS_TITLE_FORMAT=("date" "snapshot" "type" "description"); # Default parameters
     for key in "${!GRUB_BTRFS_TITLE_FORMAT[@]}"; do
-            [[ ${GRUB_BTRFS_TITLE_FORMAT[$key],,} != "${title_column[${GRUB_BTRFS_TITLE_FORMAT[$key]}],,}" ]] && continue; # User used wrong parameter
-            declare -n var="snap_${GRUB_BTRFS_TITLE_FORMAT[$key],,}" # $var is a indirect variable
-            if [[ "${#var}" -lt "${#title_column[${GRUB_BTRFS_TITLE_FORMAT[$key],,}]}" ]]; then # Add extra spaces if length of $var is smaller than the length of column, needed for pretty formatting
-                printf -v var "%-$(((${#title_column[${GRUB_BTRFS_TITLE_FORMAT[$key],,}]}-${#var})+${#var}))s" "${var}";
-            fi
-		    var="$(sed  "s/'//g"  <(echo "${var}"))"
-            title_menu+="${var}|"
-            title_submenu+=" $(trim "${var}") |"
+        [[ ${GRUB_BTRFS_TITLE_FORMAT[$key],,} != "${title_column[${GRUB_BTRFS_TITLE_FORMAT[$key]}],,}" ]] && continue; # User used wrong parameter
+        declare -n var="snap_${GRUB_BTRFS_TITLE_FORMAT[$key],,}" # $var is a indirect variable
+        if [[ "${#var}" -lt "${#title_column[${GRUB_BTRFS_TITLE_FORMAT[$key],,}]}" ]]; then # Add extra spaces if length of $var is smaller than the length of column, needed for pretty formatting
+            printf -v var "%-$(((${#title_column[${GRUB_BTRFS_TITLE_FORMAT[$key],,}]}-${#var})+${#var}))s" "${var}";
+        fi
+        var="$(sed  "s/'//g"  <(echo "${var}"))"
+        title_menu+="${var}|"
+        title_submenu+=" $(trim "${var}") |"
     done
 }
+
 # Adds a header to the grub-btrfs.cfg file
 header_menu()
 {
@@ -597,6 +599,7 @@ true > "$grub_btrfs_directory/grub-btrfs.new" # Create a "grub-btrfs.new" file i
 if [ -e "$grub_btrfs_directory/grub-btrfs.cfg" ]; then
 	mv -f "$grub_btrfs_directory/grub-btrfs.cfg" "$grub_btrfs_directory/grub-btrfs.cfg.bkp"
 fi
+
 # Create mount point then mounting
 [ ! -d "$grub_btrfs_mount_point" ] && mkdir -p "$grub_btrfs_mount_point"
 mount -o ro,subvolid=5 /dev/disk/by-uuid/"$root_uuid" "$grub_btrfs_mount_point/" > /dev/null
@@ -607,6 +610,7 @@ check_uuid_required
 # Detects if /boot is a separate partition
 [ "$(echo "$GRUB_BTRFS_OVERRIDE_BOOT_PARTITION_DETECTION}" | tr '[:upper:]' '[:lower:]')" = "true" ] && printf "Override boot partition detection : enable \n" >&2 && boot_separate;
 if [ "$root_uuid" != "$boot_uuid" ] || [ "$root_uuid_subvolume" != "$boot_uuid_subvolume" ]; then boot_separate ; else boot_bounded ; fi
+
 # Make a submenu in GRUB (grub.cfg)
 cat << EOF
 if [ ! -e "${grub_btrfs_search_directory}/grub-btrfs.cfg" ]; then
@@ -617,17 +621,24 @@ submenu '${submenuname}' ${protection_authorized_users}${unrestricted_access_sub
 }
 fi
 EOF
+
 # Show warn, menuentries exceeds 250 entries
-[ $count_warning_menuentries -ge 250 ] && printf "Generated %s total GRUB entries. You might experience issues loading snapshots menu in GRUB.\n" "${count_warning_menuentries}" >&2 ;
+[ $count_warning_menuentries -ge 250 ] &&
+printf "Generated %s total GRUB entries. You might experience issues loading snapshots menu in GRUB.\n" \
+"${count_warning_menuentries}" >&2 ;
+
 # Show total found snapshots
-if [ "${GRUB_BTRFS_SHOW_TOTAL_SNAPSHOTS_FOUND:-"true"}" = "true" ] && [ -n "${count_limit_snap}" ]  && [ "${count_limit_snap}" != "0" ]; then
+if [ "${GRUB_BTRFS_SHOW_TOTAL_SNAPSHOTS_FOUND:-"true"}" = "true" ] &&
+   [ -n "${count_limit_snap}" ]  && [ "${count_limit_snap}" != "0" ]; then
     printf "Found %s snapshot(s)\n" "${count_limit_snap}" >&2 ;
 fi
+
 # if no snapshot found, delete the "$grub_btrfs_directory/grub-btrfs.new" file and the "$grub_btrfs_directory/grub-btrfs.cfg.bkp" file and exit
 if [ "${count_limit_snap}" = "0" ] || [ -z "${count_limit_snap}" ]; then
     rm -f "$grub_btrfs_directory/grub-btrfs.new" "$grub_btrfs_directory/grub-btrfs.cfg.bkp"
     print_error "No snapshots found."
 fi
+
 # Move "grub-btrfs.new" to "grub-btrfs.cfg"
 header_menu
 if "${bindir}/${GRUB_BTRFS_SCRIPT_CHECK:-grub-script-check}" "$grub_btrfs_directory/grub-btrfs.new"; then
@@ -637,9 +648,11 @@ else
 if [ -e "$grub_btrfs_directory/grub-btrfs.cfg.bkp" ]; then
         mv -f "$grub_btrfs_directory/grub-btrfs.cfg.bkp" "$grub_btrfs_directory/grub-btrfs.cfg"
 fi
-	print_error "Syntax errors were detected in generated ${grub_btrfs_directory}/grub-btrfs.new file. The old grub-btrfs.cfg file (if present) have been restored."
+	print_error "Syntax errors were detected in ${grub_btrfs_directory}/grub-btrfs.new file.
+    The old grub-btrfs.cfg file (if present) have been restored."
 fi
 
 # warn when this script is run but there is no entry in grub.cfg
-grep "snapshots-btrfs" "${grub_directory}/grub.cfg" >/dev/null 2>&1 || printf "\nWARNING: '%s' needs to run at least once to generate the snapshots (sub)menu entry in grub the main menu. \
+grep "${NAME:-Linux} snapshots" "${grub_directory}/grub.cfg" >/dev/null 2>&1 ||
+printf "\nWARNING: '%s' needs to run at least once to generate the snapshots (sub)menu entry in grub the main menu. \
 After that this script can run alone to generate the snapshot entries.\n\n" "${GRUB_BTRFS_MKCONFIG:-grub-mkconfig}" >&2 ;
