@@ -20,8 +20,8 @@ function log () {
 
     echo "${2} ${1}"
 
-    test ${sysLog} = true && logger -p user.notice -t "${0##*/}" "[$$]" "${1}"
-    test "${#logFile}" -gt "1"  &&  echo "$(date) ${1}" >> "${logFile}"
+    if test "${sysLog}" = "true" ; then logger -p user.notice -t "${0##*/}" "[$$]" "${1}" ; fi
+    if test "${#logFile}" -gt "1" ; then  echo "$(date) ${1}" >> "${logFile}" ; fi
 
 }
 
@@ -96,6 +96,7 @@ function set_snapshot_dir () {
 
 }
 
+# shellcheck disable=SC2086
 function daemon_function () {
 
     trap 'vlog "$BASHPID: Received SIGINT/ SIGTERM"; exit 0' SIGINT SIGTERM
@@ -123,7 +124,7 @@ function daemon_function () {
                 vlog "${BASHPID}: new snapshots directory is ${snapDir}"
             else
                 log "Watching /run/timeshift for timeshift to start"
-                inotifywait "${inotifyQuiet}" -e create -e delete /run/timeshift && {
+                inotifywait ${inotifyQuiet} -e create -e delete /run/timeshift && {
                     sleep 1
                     timeshiftPid=$(ps ax | awk '{sub(/.*\//, "", $5)} $5 ~ /timeshift/ {print $1}')
                     set_snapshot_dir
@@ -140,7 +141,7 @@ function daemon_function () {
         else
             while [ -d "${snapDir}" ]; do
                 # watch the actual snapshots folder for a new snapshot or a deletion of a snapshot
-                if [ ${runs} = false ] && [ ${verboseFlag} = false ]; then
+                if [ "${runs}" = "false" ] && [ "${verboseFlag}" = "false" ]; then
                     log "${BASHPID}: Watching ${snapDir} for new snapshots..."
                 else
                     vlog "${BASHPID}: Watching ${snapDir} for new snapshots..."
@@ -148,8 +149,8 @@ function daemon_function () {
 
                 runs=true
 
-                inotifywait "${inotifyQuiet}" "${inotifyRecursive}" \
-                    -e create -e delete -e unmount -t "${watchTime}" "${snapDir}" && {
+                inotifywait ${inotifyQuiet} ${inotifyRecursive} \
+                    -e create -e delete -e unmount -t ${watchTime} ${snapDir} && {
                     log "${BASHPID}: Detected snapshot creation/ deletion, recreating Grub menu"
                     sleep 5
                     create_grub_menu
@@ -269,7 +270,7 @@ setup
 
 log  "grub-btrfsd starting up..."
 
-if [ ${timeshiftAuto} = true ] ; then
+if [ "${timeshiftAuto}" = "true" ] ; then
         daemon_function "timeshift" &
 else
     # for all dirs that got passed to the script, start a new fork with that dir
