@@ -35,9 +35,9 @@ debian:
 		$(PACKAGE_DIR)/usr/share/man/man8/$(PACKAGE).8
 	@gzip --best -nvf $(PACKAGE_DIR)/usr/share/man/man8/$(PACKAGE).8
 
-	@pandoc -s -t man man/grub-btrfs.8.md -o \
-		$(PACKAGE_DIR)/usr/share/man/man8/grub-btrfs.8
-	@gzip --best -nvf $(PACKAGE_DIR)/usr/share/man/man8/grub-btrfs.8
+	@pandoc -s -t man man/$(PACKAGE)-conf.8.md -o \
+		$(PACKAGE_DIR)/usr/share/man/man8/$(PACKAGE)-conf.8
+	@gzip --best -nvf $(PACKAGE_DIR)/usr/share/man/man8/$(PACKAGE)-conf.8
 
 	@dpkg-changelog $(PACKAGE_DIR)/DEBIAN/changelog
 	@dpkg-changelog $(PACKAGE_DIR)/usr/share/doc/$(PACKAGE)/changelog
