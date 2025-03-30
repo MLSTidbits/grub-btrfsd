@@ -28,7 +28,6 @@ debian:
 
 	@echo "$(VERSION)" > $(PACKAGE_DIR)/usr/share/doc/$(PACKAGE)/version
 
-	@scripts/set-control
 	@scripts/sum
 
 	@pandoc -s -t man man/$(PACKAGE).8.md -o \
@@ -44,6 +43,7 @@ debian:
 	@gzip -d $(PACKAGE_DIR)/DEBIAN/*.gz
 	@mv $(PACKAGE_DIR)/DEBIAN/changelog.DEBIAN $(PACKAGE_DIR)/DEBIAN/changelog
 
+	@scripts/set-control
 	@scripts/mkdeb
 
 install:
@@ -55,7 +55,8 @@ clean:
 		$(PACKAGE_DIR)/DEBIAN/changelog \
 		$(PACKAGE_DIR)/DEBIAN/md5sums \
 		$(PACKAGE_DIR)/usr/share/doc/$(PACKAGE)/*.gz \
-		$(PACKAGE_DIR)/usr/share/man/man8/$(PACKAGE).8.gz \
+		$(PACKAGE_DIR)/usr/share/doc/$(PACKAGE)/version \
+		$(PACKAGE_DIR)/usr/share/man/man8/*.8.gz
 
 help:
 	@echo "Usage: make [target] <variables>"
