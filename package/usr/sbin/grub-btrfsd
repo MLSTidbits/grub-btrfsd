@@ -27,7 +27,7 @@ function log () {
 
 function vlog () {
 
-    if [ ${verboseFlag} = true ]; then
+    if test "${verboseFlag}" = "true" ; then
         echo "${2} ${1}"
         test "${sysLog}" = "true" && logger -p user.notice -t "${0##*/}" "$1"
         test "${#logFile}" -gt "1" && echo "$(date) ${1}" >> "${logFile}"
@@ -55,7 +55,7 @@ function checks () {
           exit 1
     fi
 
-    if tests ! "${timeshiftAuto}" = "true" ; then
+    if test "${timeshiftAuto}" = "true" ; then
         for snapDir in "${snapDirs[@]}" ; do
             if ! [ -d "${snapDir}" ]; then
                 err "[!] No directory found at ${snapDir}" >&2
