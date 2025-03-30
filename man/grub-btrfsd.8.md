@@ -74,7 +74,7 @@ A common configuration for Snapper would be to set `SNAPSHOTS_DIR` to `/.snapsho
 
 # SEE ALSO
 
-*btrfs*(8) *btrfs-subvolume*(8) *grub-btrfsd*(8) *grub-mkconfig*(8)
+*btrfs*(8) *btrfs-subvolume*(8) *grub-btrfsd-conf*(8) *grub-mkconfig*(8)
 *inotifywait*(1) *openrc*(8) *rc-service*(8) *timeshift*(1)
 
 # COPYRIGHT

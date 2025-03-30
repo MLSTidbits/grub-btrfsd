@@ -153,8 +153,11 @@ By default, "grub-btrfs" automatically detects most existing kernels, initramfs 
 ---
 
 :   Example:
+
     `GRUB_BTRFS_NKERNEL=("kernel-5.19.4-custom" "vmlinux-5.19.4-custom")`
+
     `GRUB_BTRFS_NINIT=("initramfs-5.19.4-custom.img" "initrd-5.19.4-custom.img" "otherinit-5.19.4-custom.gz")`
+
     `GRUB_BTRFS_CUSTOM_MICROCODE=("custom-ucode.img" "custom-uc.img "custom_ucode.cpio")`
 
 ## `GRUB_BTRFS_SNAPSHOT_KERNEL_PARAMETERS`
