@@ -221,9 +221,9 @@ while getopts :l:otvrsh-: opt; do case "$opt" in
             log-file        ) logFile="${!OPTIND}"; OPTIND=$(( OPTIND + 1 )) ;;
             timeshift-auto  ) timeshiftAuto=true                             ;;
             timeshift-old   ) timeshiftOld=true                              ;;
-            verboseFlag         ) verboseFlag=true                                    ;;
-            recursiveFlag       ) recursiveFlag=true                                  ;;
-            sysLog          ) sysLog=true                                     ;;
+            verbose         ) verboseFlag=true                                    ;;
+            recursive       ) recursiveFlag=true                                  ;;
+            syslog          ) sysLog=true                                     ;;
             help            ) echo "${helpInfo}" ; exit 0                     ;;
             *               )
                 if test "${OPTERR}" = "1" || test "${optspec:0:1}" = ":" ; then
