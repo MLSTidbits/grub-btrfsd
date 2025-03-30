@@ -13,7 +13,7 @@ INSTALL_DOCS ?= true
 
 SHARE_DIR = $(DESTDIR)$(PREFIX)/share
 LIB_DIR = $(DESTDIR)$(PREFIX)/lib
-BIN_DIR = $(DESTDIR)$(PREFIX)/bin
+BIN_DIR = $(DESTDIR)$(PREFIX)/sbin
 MAN_DIR = $(SHARE_DIR)/man
 
 TEMP_DIR = ./temp
@@ -22,10 +22,7 @@ TEMP_DIR = ./temp
 .PHONY: install uninstall clean help
 
 install:
-	@if test "$(shell id -u)" != 0; then \
-		echo "You are not root, run this target as root please."; \
-		exit 1; \
-	fi
+
 	@echo "					     	   Installing "
 	@echo
 	@echo "       ::::::::  :::::::::  :::    ::: :::::::::               ::::::::: ::::::::::: :::::::::  :::::::::: ::::::::      "
