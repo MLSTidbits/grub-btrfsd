@@ -88,12 +88,18 @@ function create_grub_menu () {
 
     #  create the grub submenu of the whole grub menu, depending on whether the submenu already exists
     #  and gives feedback if it worked
-    if grep "snapshots-btrfs" "${GRUB_BTRFS_GRUB_DIRNAME:-/boot/grub}"/grub.cfg; then
-    	test -f "/etc/grub.d/41_grub-btrfsd" && log "Grub submenu recreated" ||
-        err "[!] Error during grub submenu creation (grub-btrfs error)"
+    if grep "${NAME:-Linux} snapshots" "${GRUB_BTRFS_GRUB_DIRNAME:-/boot/efi/EFI/${ID}}"/grub.cfg; then
+    	if /etc/grub.d/41_grub-btrfsd ; then
+            log "Grub submenu recreated"
+        else
+            err "[!] Error during grub submenu creation (grub-btrfsd error)"
+        fi
     else
-        ${GRUB_BTRFS_MKCONFIG:-grub-mkconfig} -o "${GRUB_BTRFS_GRUB_DIRNAME:-/boot/grub}"/grub.cfg &&
-		log "Grub menu recreated" || err "[!] Error during grub menu creation (grub/ grub-btrfs error)"
+        if ${GRUB_BTRFS_MKCONFIG:-grub-mkconfig} -o "${GRUB_BTRFS_GRUB_DIRNAME:-/boot/efi/EFI/${ID}}"/grub.cfg ; then
+            log "Grub submenu created"
+        else
+            err "[!] Error during grub submenu creation (grub-mkconfig error)"
+        fi
     fi
 }
 
