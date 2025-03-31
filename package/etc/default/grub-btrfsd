@@ -1,3 +1,5 @@
+# shellcheck disable=SC2148
+# shellcheck disable=SC2034
 GRUB_BTRFS_VERSION="$(cat /usr/share/doc/grub-btrfsd/version)"
 
 # Disable grub-btrfs.
@@ -28,7 +30,7 @@ GRUB_BTRFS_VERSION="$(cat /usr/share/doc/grub-btrfsd/version)"
 #GRUB_BTRFS_SHOW_SNAPSHOTS_FOUND="false"
 
 # Show Total of snapshots found during run "grub-mkconfig"
-# Default: "true"
+# Default: "false"
 #GRUB_BTRFS_SHOW_TOTAL_SNAPSHOTS_FOUND="true"
 
 # By default, "grub-btrfs" automatically detects most existing kernels.
@@ -65,12 +67,14 @@ GRUB_BTRFS_VERSION="$(cat /usr/share/doc/grub-btrfsd/version)"
 # Only exact paths are ignored.
 # e.g : if `specific path` = @, only `@` snapshot will be ignored.
 # Default: ("@")
+# shellcheck disable=SC2034
 GRUB_BTRFS_IGNORE_SPECIFIC_PATH=("@")
 
 # Ignore prefix path during run "grub-mkconfig".
 # Any path starting with the specified string will be ignored.
 # e.g : if `prefix path` = @, all snapshots beginning with "@/..." will be ignored.
 # Default: ("var/lib/docker" "@var/lib/docker" "@/var/lib/docker")
+# shellcheck disable=SC2034
 GRUB_BTRFS_IGNORE_PREFIX_PATH=("var/lib/docker" "@var/lib/docker" "@/var/lib/docker")
 
 # Ignore specific type/tag of snapshot during run "grub-mkconfig".
