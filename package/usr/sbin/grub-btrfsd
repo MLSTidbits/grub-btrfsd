@@ -88,7 +88,7 @@ function create_grub_menu () {
 
     #  create the grub submenu of the whole grub menu, depending on whether the submenu already exists
     #  and gives feedback if it worked
-    if grep "${NAME:-Linux} snapshots" "${GRUB_BTRFS_GRUB_DIRNAME:-/boot/efi/EFI/${ID}}"/grub.cfg; then
+    if grep -q "${NAME:-Linux} snapshots" "${GRUB_BTRFS_GRUB_DIRNAME:-/boot/efi/EFI/${ID}}"/grub.cfg; then
     	if /etc/grub.d/41_grub-btrfsd ; then
             log "Grub submenu recreated"
         else
@@ -200,8 +200,6 @@ sysLog=false
 recursiveFlag=false
 trap sign_handler SIGINT SIGTERM
 
-
-
 sysConfig="/etc"
 grubBtrfsdConfig="${sysConfig}/default/grub-btrfsd"
 
@@ -209,7 +207,10 @@ grubBtrfsdConfig="${sysConfig}/default/grub-btrfsd"
 test -f "$grubBtrfsdConfig" && source "${grubBtrfsdConfig}"
 
 # shellcheck disable=SC1091
-test -f "${sysConfig}/default/grub"  && source "${sysConfig}/default/grub"
+test -f "${sysConfig}/os-release" && source "${sysConfig}/os-release"
+
+# shellcheck disable=SC1091
+test -f "${sysConfig}/default/grub" && source "${sysConfig}/default/grub"
 
 helpInfo="$(cat <<EOF
 ${packageName} - Update GRUB when new BTRFS snapshots are created.
@@ -217,59 +218,29 @@ ${packageName} - Update GRUB when new BTRFS snapshots are created.
 Usage: [OPTIONS] SNAPSHOTS_DIRS
 
 Optional arguments:
-    -c, --no-color        Disable colors in output
-    -l, --log-file        Specify a logFile to write to
-    -r, --recursiveFlag       Watch snapshots directory recursively
-    -s, --sysLog          Write to sysLog
-    -o, --timeshift-old   Look for snapshots in directory of Timeshift <v22.06 (requires --timeshift-auto)
-    -t, --timeshift-auto  Automatically detect Timeshift snapshots (requires Timeshift)
-    -v, --verboseFlag         Let the log of the daemon be more verboseFlag
-    -h, --help            Display this message
+    -c, --no-color          Disable colors in output
+    -l, --log-file          Specify a logFile to write to
+    -r, --recursive         Watch snapshots directory recursively
+    -s, --sysLog            Write to sysLog
+    -o, --timeshift-old     Look for snapshots in directory of Timeshift <v22.06 (requires --timeshift-auto)
+    -t, --timeshift-auto    Automatically detect Timeshift snapshots (requires Timeshift)
+    -v, --verbose           Let the log of the daemon be more verboseFlag
+    -h, --help              Display this message
 
 Version ${GRUB_BTRFS_VERSION}
 EOF
 )"
 
-# shellcheck disable=SC2154
-while getopts :l:otvrsh-: opt; do case "$opt" in
-    -       )
-        case "${OPTARG}" in
-            log-file        ) logFile="${!OPTIND}"; OPTIND=$(( OPTIND + 1 )) ;;
-            timeshift-auto  ) timeshiftAuto=true                             ;;
-            timeshift-old   ) timeshiftOld=true                              ;;
-            verbose         ) verboseFlag=true                                    ;;
-            recursive       ) recursiveFlag=true                                  ;;
-            syslog          ) sysLog=true                                     ;;
-            help            ) echo "${helpInfo}" ; exit 0                     ;;
-            *               )
-                if test "${OPTERR}" = "1" || test "${optspec:0:1}" = ":" ; then
-                    err "[!] Non-option argument: '--${OPTARG}'" >&2
-                    echo
-                fi
-
-                echo "${helpInfo}"
-                exit 1
-            ;;
-        esac
-    ;;
-    l                       ) logFile="${OPTARG}"                             ;;
-    t                       ) timeshiftAuto=true                             ;;
-    o                       ) timeshiftOld=true                              ;;
-    v                       ) verboseFlag=true                                    ;;
-    r                       ) recursiveFlag=true                                  ;;
-    s                       ) sysLog=true                                     ;;
-    h                       ) echo "${helpInfo}" ; exit 0                     ;;
-    *                       )
-        if test "$OPTERR" = "1" || test "${optspec:0:1}" = ":" ; then
-            err "[!] Non-option argument: '-${OPTARG}'" >&2
-            echo
-        fi
-        echo "${helpInfo}"
-        exit 1
-    ;;
+while true ; do case "${1}" in
+    -l | --log-file         ) logFile="${2}"     ; shift 2 ;;
+    -r | --recursive        ) recursiveFlag=true ; shift   ;;
+    -s | --sysLog           ) sysLog=true        ; shift   ;;
+    -o | --timeshift-old    ) timeshiftOld=true  ; shift   ;;
+    -t | --timeshift-auto   ) timeshiftAuto=true ; shift   ;;
+    -v | --verbose          ) verboseFlag=true   ; shift   ;;
+    -h | --help             ) echo "${helpInfo}" ; exit 0  ;;
+    *                       ) break                        ;;
 esac ; done
-
-shift $(( OPTIND - 1 ))
 
 snapDirs=( "${@}" )
 
