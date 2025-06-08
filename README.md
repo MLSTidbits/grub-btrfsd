@@ -1,7 +1,7 @@
 [![GitHub release](https://img.shields.io/github/release/Antynea/grub-btrfs.svg)](https://github.com/Antynea/grub-btrfs/releases)
 ![](https://img.shields.io/github/license/Antynea/grub-btrfs.svg)
 
-## 💻 grub-btrfs 
+## 💻 grub-btrfs
 
 ##### BTC donation address: `1Lbvz244WA8xbpHek9W2Y12cakM6rDe5Rt`
 - - -
@@ -37,21 +37,21 @@ pacman -S grub-btrfs
 ```
 
 #### Gentoo
-grub-btrfs is only available in the Gentoo User Repository (GURU) and not in the official Gentoo repository.  
+grub-btrfs is only available in the Gentoo User Repository (GURU) and not in the official Gentoo repository.
 If you have not activated the GURU yet, do so by running:
 ```
-emerge -av app-eselect/eselect-repository 
-eselect repository enable guru 
-emaint sync -r guru 
+emerge -av app-eselect/eselect-repository
+eselect repository enable guru
+emaint sync -r guru
 ```
 If you are using Systemd on Gentoo, make sure the USE-Flag `systemd` is set. (Either globally in make.conf or in package.use for the package app-backup/grub-btrfs)
 Without Systemd USE-Flag the OpenRC-daemon of grub-btrfs will be installed.
 
-Emerge grub-btrfs via 
+Emerge grub-btrfs via
 `emerge app-backup/grub-btrfs`
 
 #### Kali Linux
-[grub-btrfs](http://pkg.kali.org/pkg/grub-btrfs) is available in the Kali Linux repository and can be installed with:  
+[grub-btrfs](http://pkg.kali.org/pkg/grub-btrfs) is available in the Kali Linux repository and can be installed with:
 ```
 apt install grub-btrfs
 ```
@@ -59,7 +59,7 @@ Booting into read-only snapshots is fully supported when choosing btrfs as the f
 
 #### Manual installation
 * Run `make install`
-* Run `make help` to check what options are available. 
+* Run `make help` to check what options are available.
 * Dependencies:
   * [btrfs-progs](https://archlinux.org/packages/core/x86_64/btrfs-progs/)
   * [grub](https://archlinux.org/packages/core/x86_64/grub/)
@@ -71,8 +71,8 @@ Booting into read-only snapshots is fully supported when choosing btrfs as the f
 ### 📚 Manual usage of grub-btrfs
 To manually generate grub snapshot entries you can run `sudo /etc/grub.d/41_snapshots-btrfs` which updates `grub-btrfs.cfg`. You then need to regenerate the GRUB configuration by running one of the following commands:
 
-* On **Arch Linux** or **Gentoo** use `grub-mkconfig -o /boot/grub/grub.cfg`.  
-* On **Fedora** use `grub2-mkconfig -o /boot/grub2/grub.cfg`  
+* On **Arch Linux** or **Gentoo** use `grub-mkconfig -o /boot/grub/grub.cfg`.
+* On **Fedora** use `grub2-mkconfig -o /boot/grub2/grub.cfg`
 * On **Debian and Ubuntu based** distributions `update-grub` is a script that runs `grub-mkconfig ...`
 
 This process can be automated to occur whenever you create or delete snapshots but this process is slightly different depending upon your distributions choice on init system. See the relevant instructions for your init system below.
@@ -83,7 +83,7 @@ You have the possibility to modify many parameters in `/etc/default/grub-btrfs/c
 For further information see [config file](https://github.com/Antynea/grub-btrfs/blob/master/config) or `man grub-btrfs`
 
 #### Warning:
-Some file locations and command names differ from distribution to distribution. Initially the configuration is set up to work with Arch and Gentoo (and many other distributions) out of the box, which are using the `grub-mkconfig` command. 
+Some file locations and command names differ from distribution to distribution. Initially the configuration is set up to work with Arch and Gentoo (and many other distributions) out of the box, which are using the `grub-mkconfig` command.
 However Fedora, for example, uses a different command, `grub2-mkconfig`.
 Edit the `GRUB_BTRFS_MKCONFIG` variable in `/etc/default/grub-btrfs/config` file to reflect this. (e.g. `GRUB_BTRFS_MKCONFIG=/sbin/grub2-mkconfig` for Fedora)
 
@@ -93,12 +93,12 @@ On most distributions, the grub installation resides in `/boot/grub`. If grub is
 
 Grub-btrfs comes with a daemon script that automatically updates the grub menu when it sees a snapshot being created or deleted in a directory it is given via command line. You must install `inotify-tools` before you can use grub-btrfsd.
 
-The daemon can be configured by passing different command line arguments to it. 
+The daemon can be configured by passing different command line arguments to it.
 The available arguments are:
 * `SNAPSHOTS_DIRS`
 This argument specifies the (space separated) paths where grub-btrfsd looks for newly created snapshots and snapshot deletions. It is usually defined by the program used to make snapshots.
 E.g. for Snapper or Yabsnap this would be `/.snapshots`. It is possible to define more than one directory here, all directories will inherit the same settings (recursive etc.).
-This argument is not necessary to provide if `--timeshift-auto` is set. 
+This argument is not necessary to provide if `--timeshift-auto` is set.
 * `-c / --no-color`
 Disable colors in output.
 * `-l / --log-file`
@@ -114,12 +114,12 @@ This is a flag to activate the auto-detection of the path where Timeshift stores
 Let the log of the daemon be more verbose
 * `-h / --help`
 Displays a short help message.
-- - - 
+- - -
 ### 🪀 Automatically update grub upon snapshot creation or deletion
 Grub-btrfsd is a daemon that watches the snapshot directory for you and updates the grub menu automatically every time a snapshot is created or deleted.
 By default this daemon watches the directory `/.snapshots` for changes (creation or deletion of snapshots) and triggers the grub menu creation and re-installation of grub if any changes are noticed.
 Therefore, if Snapper or Yabsnap is used with its default directory, the daemon can just be started and nothing needs to be configured. See the instructions below to configure grub-btrfsd for use with Timeshift or when using an alternative snapshots directory with Snapper/Yabsnap.
-- - - 
+- - -
 #### grub-btrfsd systemd instructions
 To start the daemon run:
 ```bash
@@ -134,7 +134,7 @@ sudo systemctl enable grub-btrfsd
 ##### 💼 Snapshots not in `/.snapshots` when using systemd
 By default the daemon is watching the directory `/.snapshots`. If the daemon should watch a different directory, it can be edited with:
 ```bash
-sudo systemctl edit --full grub-btrfsd 
+sudo systemctl edit --full grub-btrfsd
 ```
 You need to edit the `/.snapshots` part in the line that says `ExecStart=/usr/bin/grub-btrfsd --syslog /.snapshots`.
 This is what the file should look like afterwards:
@@ -166,7 +166,7 @@ WantedBy=multi-user.target
 
 When done, the service should be restarted with:
 ``` bash
-sudo systemctl restart grub-btrfsd 
+sudo systemctl restart grub-btrfsd
 ```
 
 ##### 🌟 Using Timeshift with systemd
@@ -176,11 +176,11 @@ To activate this mode of the daemon, `--timeshift-auto` must be passed to the da
 
 To pass `--timeshift-auto` to grub-btrfsd, the .service file of grub-btrfsd can be edited with
 ```bash
-sudo systemctl edit --full grub-btrfsd 
+sudo systemctl edit --full grub-btrfsd
 ```
 
 The line that contains:
-```bash 
+```bash
 ExecStart=/usr/bin/grub-btrfsd /.snapshots --syslog
 
 ```
@@ -224,7 +224,7 @@ ExecStart=/usr/bin/grub-btrfsd --syslog --timeshift-auto --timeshift-old
 
 When done, the service must be restarted with:
 ``` bash
-sudo systemctl restart grub-btrfsd 
+sudo systemctl restart grub-btrfsd
 ```
 
 Note:
@@ -235,17 +235,17 @@ To revert all the changes use `systemctl revert grub-btrfsd`.
 #### grub-btrfsd OpenRC instructions
 To start the daemon run:
 ```bash
-sudo rc-service grub-btrfsd start 
+sudo rc-service grub-btrfsd start
 ```
 
 To activate it during system startup, run:
 ```bash
-sudo rc-config add grub-btrfsd default 
+sudo rc-config add grub-btrfsd default
 ```
 
 ##### 💼 Snapshots not in `/.snapshots` for OpenRC
 By default the daemon is watching the directory `/.snapshots`. If the daemon should watch a different directory, it can be edited by passing different arguments to it.
-Arguments are passed to grub-btrfsd via the file `/etc/conf.d/grub-btrfsd`. 
+Arguments are passed to grub-btrfsd via the file `/etc/conf.d/grub-btrfsd`.
 The variable `snapshots` defines the path the daemon will monitor for snapshots.
 
 After editing, the file should look like this:
@@ -287,7 +287,7 @@ When requesting help or reporting bugs in grub-btrfs, please run:
 ``` bash
 sudo /etc/grub.d/41_snapshots-btrfs --version
 ```
-or 
+or
 ``` bash
 sudo /usr/bin/grub-btrfsd --help
 ```
@@ -297,7 +297,7 @@ to get the currently running version of grub-btrfs and include this information 
 If you have problems with the daemon, you can run it with the `--verbose`-flag. To do so you can run:
 ``` bash
 sudo /usr/bin/grub-btrfsd --verbose --timeshift-auto` (for timeshift)
-# or 
+# or
 sudo /usr/bin/grub-btrfsd /.snapshots --verbose` (for snapper/yabsnap)
 ```
 Or pass `--verbose` to the daemon using the Systemd .service file or the OpenRC conf.d file respectively.
@@ -306,7 +306,7 @@ For additional information on the daemon and its arguments, run `grub-btrfsd -h`
 
 - - -
 ### Development
-Grub-btrfs uses a rudimentary system of automatic versioning to tell apart different commits. This is helpful when users report problems and it is not immediately clear what version they are using. 
+Grub-btrfs uses a rudimentary system of automatic versioning to tell apart different commits. This is helpful when users report problems and it is not immediately clear what version they are using.
 We therefore have the following script in `.git/hooks/pre-commit`:
 
 ``` bash
@@ -320,7 +320,7 @@ git add config
 ```
 
 This automatically sets the version in the `config`-file to `[lasttag]-[branch-name]-[current-date-in-UTC]`.
-In order to create a Tag we don't want to have this long version. In this case we set the version manually in `config` and commit with `git commit --no-verify`. This avoids running the hook. 
+In order to create a Tag we don't want to have this long version. In this case we set the version manually in `config` and commit with `git commit --no-verify`. This avoids running the hook.
 
 ### Special thanks for assistance and contributions
 * [Maxim Baz](https://github.com/maximbaz)
