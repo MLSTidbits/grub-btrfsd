@@ -635,7 +635,7 @@ limit_snap_show="${GRUB_BTRFS_LIMIT:-50}"
 ## How to sort snapshots list
 btrfs_subvolume_sort="--sort=${GRUB_BTRFS_SUBVOLUME_SORT:-"-rootid"}"
 
-grub_directory=${GRUB_BTRFS_GRUB_DIRNAME:-"/boot/efi/EFI/${ID}"}
+grub_directory=${GRUB_BTRFS_GRUB_DIRNAME:-"/boot/grub"}
 
 ## Customize BOOT directory, where kernels/initrams/microcode is saved.
 boot_directory=${GRUB_BTRFS_BOOT_DIRNAME:-"/boot"}
