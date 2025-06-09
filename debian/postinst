@@ -4,6 +4,13 @@ set -eo pipefail
 
 case "${1}" in
     configure|upgrade|reinstall )
+
+        # Check if Timeshift is installed and if so then modify the systemd service
+        if command -v timeshift &> /dev/null ; then
+            sed -i 's|^//.snapshots|--timeshift-old --timeshift-new|g' \
+                /usr/lib/systemd/system/grub-btrfsd.service
+        fi
+
         if systemctl is-active --quiet grub-btrfsd.service ; then
             systemctl daemon-reload ; systemctl restart grub-btrfsd.service
         else
