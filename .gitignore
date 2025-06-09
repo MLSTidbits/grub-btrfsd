@@ -6,7 +6,7 @@ build/
 *.xz
 *.deb
 *.tar
-package/DEBIAN/control
+dist/
 changelog
 version
 md5sums
