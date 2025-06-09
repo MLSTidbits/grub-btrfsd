@@ -212,10 +212,17 @@ test -f "${sysConfig}/os-release" && source "${sysConfig}/os-release"
 # shellcheck disable=SC1091
 test -f "${sysConfig}/default/grub" && source "${sysConfig}/default/grub"
 
-helpInfo="$(cat <<EOF
-${packageName} - Update GRUB when new BTRFS snapshots are created.
+versionInfo="$(cat <<EOF
+${packageName} - version - ${GRUB_BTRFS_VERSION}) | Update GRUB when new BTRFS snapshots are created.
+Copyright (c) 2023 Pascal Jaeger - 2025 Michael Lee Schaecher under the GPL-3.0 license
+EOF
+)"
 
-Usage: [OPTIONS] SNAPSHOTS_DIRS
+
+helpInfo="$(cat <<EOF
+${versionInfo}
+
+Usage: ${packageName} [OPTIONS]* SNAPSHOTS_DIRS
 
 Optional arguments:
     -c, --no-color          Disable colors in output
@@ -226,20 +233,20 @@ Optional arguments:
     -t, --timeshift-auto    Automatically detect Timeshift snapshots (requires Timeshift)
     -v, --verbose           Let the log of the daemon be more verboseFlag
     -h, --help              Display this message
-
-Version ${GRUB_BTRFS_VERSION}
+    -V, --version           Display version information
 EOF
 )"
 
 while true ; do case "${1}" in
-    -l | --log-file         ) logFile="${2}"     ; shift 2 ;;
-    -r | --recursive        ) recursiveFlag=true ; shift   ;;
-    -s | --sysLog           ) sysLog=true        ; shift   ;;
-    -o | --timeshift-old    ) timeshiftOld=true  ; shift   ;;
-    -t | --timeshift-auto   ) timeshiftAuto=true ; shift   ;;
-    -v | --verbose          ) verboseFlag=true   ; shift   ;;
-    -h | --help             ) echo "${helpInfo}" ; exit 0  ;;
-    *                       ) break                        ;;
+    -l | --log-file         ) logFile="${2}"        ; shift 2 ;;
+    -r | --recursive        ) recursiveFlag=true    ; shift   ;;
+    -s | --sysLog           ) sysLog=true           ; shift   ;;
+    -o | --timeshift-old    ) timeshiftOld=true     ; shift   ;;
+    -t | --timeshift-auto   ) timeshiftAuto=true    ; shift   ;;
+    -v | --verbose          ) verboseFlag=true      ; shift   ;;
+    -h | --help             ) echo "${helpInfo}"    ; exit 0  ;;
+    -V | --version          ) echo "${versionInfo}" ; exit 0  ;;
+    *                       ) break                           ;;
 esac ; done
 
 snapDirs=( "${@}" )

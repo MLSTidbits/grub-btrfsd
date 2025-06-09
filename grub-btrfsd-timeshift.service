@@ -17,7 +17,7 @@ EnvironmentFile = /etc/default/grub-btrfsd
 # -l, --log-file        Specify a logfile to write to
 # -v, --verbose         Let the log of the daemon be more verbose
 # -s, --syslog          Write to syslog
-ExecStart = /usr/sbin/grub-btrfsd --syslog --timeshift-auto
+ExecStart = /usr/sbin/grub-btrfsd --syslog --timeshift-auto --timeshift-old
 
 [Install]
 WantedBy = multi-user.target
