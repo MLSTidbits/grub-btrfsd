@@ -1,0 +1,13 @@
+Package: grub-btrfsd
+Version:
+Section: utils
+Priority: optional
+Maintainer:
+Installed-Size:
+Homepage:
+Architecture: amd64
+Depends: btrfs-progs, grub2-common, inotify-tools
+Build-Depends: debhelper (>= 11), git, dpkg-dev, dpkg-changelog
+Description: Add BTRFS snapshots to Grub boot menu -
+  Show BTRFS snapshots in Grub boot menu making it easy to boot into
+  previous system states for recovery purposes.
