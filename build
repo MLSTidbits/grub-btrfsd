@@ -34,7 +34,7 @@ echo "$FULL_VERSION" | tee doc/version
 echo "
 Building package ${PACKAGE_NAME} version ${FULL_VERSION} for architecture ${PACKAGE_ARCH}..."
 
-mkdir -p "${BUILD_DIR}"/{DEBIAN,etc/default,usr/{sbin,share/{doc/${PACKAGE_NAME},man/man8},lib/systemd/system}}
+mkdir -p "${BUILD_DIR}"/{DEBIAN,etc/{default,grub.d},usr/{sbin,share/{doc/${PACKAGE_NAME},man/man8},lib/systemd/system}}
 
 # Copy the documentation files.
 cp -av doc/* "${BUILD_DIR}"/usr/share/doc/"${PACKAGE_NAME}"/
@@ -50,6 +50,7 @@ cp -av default "${BUILD_DIR}"/etc/default/"${PACKAGE_NAME}"
 
 # Copy the main binary.
 cp -av grub-btrfsd "${BUILD_DIR}"/usr/sbin/ && chmod +x "${BUILD_DIR}"/usr/sbin/grub-btrfsd
+cp -av 41_grub-btrfsd "${BUILD_DIR}"/etc/grub.d/ && chmod +x "${BUILD_DIR}"/etc/grub.d/41_grub-btrfsd
 
 cp -av debian/* "${BUILD_DIR}"/DEBIAN/
 
@@ -75,6 +76,8 @@ for m in man/*.md; do
 done
 
 cd dist || { output "Error: Failed to change directory to dist." ; exit 1 ; }
+
+rm -f DEBIAN/md5sums || true
 
 # Use loop to calculate the md5sum of each file
 find . -type f | while read -r file ; do
