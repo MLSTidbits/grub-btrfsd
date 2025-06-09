@@ -1,0 +1,93 @@
+#!/usr/env bash
+
+set -eo pipefail
+
+# Debian/Ubuntu: dpkg variables
+PACKAGE_NAME="grub-btrfsd"
+
+PACKAGE_ARCH="amd64"
+
+PACKAGE_MAINTAINER="$(git config --get user.name) <$(git config --get user.email)>"
+
+PACKAGE_HOMEPAGE="https://github.com/MichaelMure/grub-btrfsd"
+
+BUILD_DIR="dist"
+
+case "${1}" in
+    clean               ) echo "Cleaning up..."
+        rm -rvf ${BUILD_DIR} debian/changelog doc/version
+        exit 0 ;;
+    *                   )                                              ;;
+esac
+
+test -f debian/changelog || dpkg-changelog
+
+PACKAGE_VERSION="$(cat doc/version)"
+BUILD_VERSION="$(git rev-parse --short HEAD)"
+
+FULL_VERSION="${PACKAGE_VERSION}"
+
+grep -q "$BUILD_VERSION" doc/version || FULL_VERSION="${PACKAGE_VERSION}-${BUILD_VERSION}"
+
+echo "$FULL_VERSION" | tee doc/version
+
+echo "
+Building package ${PACKAGE_NAME} version ${FULL_VERSION} for architecture ${PACKAGE_ARCH}..."
+
+mkdir -p "${BUILD_DIR}"/{DEBIAN,etc/default,usr/{sbin,share/{doc/${PACKAGE_NAME},man/man8},lib/systemd/system}}
+
+# Copy the documentation files.
+cp -av doc/* "${BUILD_DIR}"/usr/share/doc/"${PACKAGE_NAME}"/
+cp -av COPYING "${BUILD_DIR}"/usr/share/doc/"${PACKAGE_NAME}"/copyright
+cp -av README.md "${BUILD_DIR}"/usr/share/doc/"${PACKAGE_NAME}"/readme.md
+cp -av CODE_OF_CONDUCT.md "${BUILD_DIR}"/usr/share/doc/"${PACKAGE_NAME}"/code_of_conduct.md
+
+# Copy the systemd service file.
+cp -av ./*.service "${BUILD_DIR}"/usr/lib/systemd/system/
+
+# Copy the default configuration file.
+cp -av default "${BUILD_DIR}"/etc/default/"${PACKAGE_NAME}"
+
+# Copy the main binary.
+cp -av grub-btrfsd "${BUILD_DIR}"/usr/sbin/ && chmod +x "${BUILD_DIR}"/usr/sbin/grub-btrfsd
+
+cp -av debian/* "${BUILD_DIR}"/DEBIAN/
+
+while IFS= read -r line; do
+    case "${line}" in
+        "Version:"              ) echo "Version: $(cat doc/version)" ;;
+        "Maintainer:"           ) echo "Maintainer: ${PACKAGE_MAINTAINER}" ;;
+        "Homepage:"             ) echo "Homepage: ${PACKAGE_HOMEPAGE}" ;;
+        *) echo "${line}" ;;
+    esac
+done < dist/DEBIAN/control > dist/DEBIAN/control.tmp
+
+mv dist/DEBIAN/control.tmp dist/DEBIAN/control
+
+# Make sure that the postinst and prerm scripts are executable.
+chmod +x "${BUILD_DIR}"/DEBIAN/{postinst,prerm}
+
+# Transpile the man page from Markdown using Pandoc.
+for m in man/*.md; do
+    base=$(basename "$m" .md)
+    pandoc "$m" -s -t man -o "${BUILD_DIR}/usr/share/man/man8/${base}"
+    gzip -f9 "${BUILD_DIR}/usr/share/man/man8/${base}"
+done
+
+cd dist || { output "Error: Failed to change directory to dist." ; exit 1 ; }
+
+# Use loop to calculate the md5sum of each file
+find . -type f | while read -r file ; do
+
+    md5sum "${file}" >> "DEBIAN/md5sums"
+    # Do not include the DEBIAN directory in the md5sums file
+    sed -i '/.\/DEBIAN/d' "DEBIAN/md5sums"
+    # Remove the leading " ./" without removing the other "/" in the file path
+    sed -i 's/ .\///' "DEBIAN/md5sums"
+
+done
+
+cd ../
+
+# Build the package.
+dpkg-deb --build "${BUILD_DIR}" "${PACKAGE_NAME}_${FULL_VERSION}_${PACKAGE_ARCH}.deb"
