@@ -89,5 +89,11 @@ done
 
 cd ../
 
+# Get the size of each directory in th out folder.
+TOTAL_SIZE="$(find dist/ -type d -exec du -s {} + | sort -n | awk '{print $1}')"
+FIXED_SIZE="$(( TOTAL_SIZE - $(du -s dist/DEBIAN | awk '{print $1}') ))"
+
+sed -i "s/Installed-Size:/Installed-Size: ${FIXED_SIZE}/" dist/DEBIAN/control
+
 # Build the package.
 dpkg-deb --build "${BUILD_DIR}" "${PACKAGE_NAME}_${FULL_VERSION}_${PACKAGE_ARCH}.deb"
