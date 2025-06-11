@@ -3,8 +3,6 @@
   <image
     src="image/logo.svg"
     alt="grub-btrfsd logo"
-    width="720px"
-    height="480px"
     style="display: block; margin: 0 auto;"
   />
 </div>
