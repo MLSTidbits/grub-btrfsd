@@ -225,7 +225,6 @@ ${versionInfo}
 Usage: ${packageName} [OPTIONS]* SNAPSHOTS_DIRS
 
 Optional arguments:
-    -c, --no-color          Disable colors in output
     -l, --log-file          Specify a logFile to write to
     -r, --recursive         Watch snapshots directory recursively
     -s, --sysLog            Write to sysLog
