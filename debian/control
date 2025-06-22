@@ -1,6 +1,6 @@
 Package: grub-btrfsd
 Version:
-Section: utils
+Section: admin
 Priority: optional
 Maintainer:
 Installed-Size:
