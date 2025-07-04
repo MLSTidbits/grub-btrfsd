@@ -1,6 +1,12 @@
 ---
-section: 8
-title: grub-btrfs
+title: GRUB-BTRFSD-CONF
+section: 1
+header: User Commands
+footer: grub-btrfsd-conf(1)
+date: 2025-03-29
+author:
+    - Michael Lee Schaecher
+    - Pascal Jäger
 ---
 
 # NAME

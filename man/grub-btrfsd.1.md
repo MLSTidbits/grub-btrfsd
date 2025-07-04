@@ -1,15 +1,18 @@
 ---
 title: GRUB-BTRFSD
-section: 8
-header: System Administration Utilities
-footer: GRUB-BTRFSD
+section: 1
+header: User Commands
+footer: grub-btrfsd(1)
 date: 2025-03-29
+author:
+    - Michael Lee Schaecher
+    - Pascal Jäger
 ---
 
 # NAME
 
 grub-btrfsd - An OpenRC daemon to automatically update the grub menu
-with **grub-btrfs**(8)
+with _grub-btrfs__(8)
 
 when a new btrfs snapshot is created.
 
@@ -35,8 +38,6 @@ _-r_  _--recursive_
 
 _-s_, _--syslog_
 : Write the output of the daemon to syslog (NOTE: this option will be deprecated in the future. Making the daemon write to syslog the default behavior). If this flag is not set no logging is done. However, messages are printed to stdout and stderr.
-
-Write to syslog
 
 _-t_, _--timeshift-auto_
 : This is a flag to activate the auto detection of the path where Timeshift stores snapshots. Newer versions (\>=22.06) of Timeshift mount their snapshots to `/run/timeshift/$PID/backup/timeshift-btrfs`. Where `$PID` is the process ID of the currently running Timeshift session. The PID is changing every time Timeshift is opened. grub-btrfsd can automatically take care of the detection of the correct PID and directory if this flag is set. In this case the argument `SNAPSHOTS_DIRS` has no effect.
@@ -64,8 +65,8 @@ A common configuration for Snapper would be to set `SNAPSHOTS_DIR` to `/.snapsho
 
 # SEE ALSO
 
-*btrfs*(8) *btrfs-subvolume*(8) *grub-btrfsd-conf*(8) *grub-mkconfig*(8)
-*inotifywait*(1) *openrc*(8) *rc-service*(8) *timeshift*(1)
+_btrfs_(8) _btrfs-subvolume_(8) _grub-btrfsd-conf_(8) _grub-mkconfig_(8)
+_inotifywait_(1) _openrc_(8) _rc-service_(8) _timeshift_(1)
 
 # COPYRIGHT
 
