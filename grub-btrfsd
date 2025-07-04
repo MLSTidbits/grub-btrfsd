@@ -48,7 +48,6 @@ function event_log () {
     else
         echo "$(date +'%Y-%m-%d %H:%M:%S') [${_eventType}] ${_eventMessage}" >&2
     fi
-
 }
 
 
@@ -177,7 +176,6 @@ _appName="grub-btrfsd"
 # init
 _timeshiftPid=-1
 _watchTime=0
-_logFile=0
 _timeshiftAuto=false
 _timeshiftOld=false
 _verboseFlag=false
@@ -189,7 +187,7 @@ _recursiveFlag=false
 trap sign_handler SIGINT SIGTERM SIGQUIT
 
 sysConfig="/etc"
-grubBtrfsdConfig="${sysConfig}/default/grub_btrfsd"
+grubBtrfsdConfig="${sysConfig}/default/grubbtrfsd"
 
 # shellcheck disable=SC1090
 test -f "$grubBtrfsdConfig" && source "${grubBtrfsdConfig}"
@@ -201,7 +199,7 @@ test -f "${sysConfig}/os-release" && source "${sysConfig}/os-release"
 test -f "${sysConfig}/default/grub" && source "${sysConfig}/default/grub"
 
 versionInfo="$(cat <<EOF
-${_appName} - version - ${GRUB_BTRFS_VERSION}) | Update GRUB when new BTRFS snapshots are created.
+${_appName} - version - ${GRUB_BTRFS_VERSION})|Update GRUB when new BTRFS snapshots are created.
 Copyright (c) 2023 Pascal Jaeger - 2025 Michael Lee Schaecher under the GPL-3.0 license
 EOF
 )"
@@ -227,14 +225,13 @@ EOF
 # shellcheck disable=SC2221
 # shellcheck disable=SC2222
 while true ; do case "${1}" in
-    -l | --log-file         ) _logFile="${2}"       ; shift 2 ;;
-    -r | --recursive        ) _recursiveFlag=true   ; shift   ;;
-    -s | --syslog           ) _sysLog=true          ; shift   ;;
-    -o | --timeshift-old    ) _timeshiftOld=true    ; shift   ;;
-    -t | --timeshift-auto   ) _timeshiftAuto=true   ; shift   ;;
-    -v | --verbose          ) _verboseFlag=true     ; shift   ;;
-    -h | --help             ) echo "${helpInfo}"    ; exit 0  ;;
-    -V | --version          ) echo "${versionInfo}" ; exit 0  ;;
+    -r|--recursive          ) _recursiveFlag=true   ; shift   ;;
+    -s|--syslog             ) _sysLog=true          ; shift   ;;
+    -o|--timeshift-old      ) _timeshiftOld=true    ; shift   ;;
+    -t|--timeshift-auto     ) _timeshiftAuto=true   ; shift   ;;
+    -v|--verbose            ) _verboseFlag=true     ; shift   ;;
+    -h|--help               ) echo "${helpInfo}"    ; exit 0  ;;
+    -V|--version            ) echo "${versionInfo}" ; exit 0  ;;
     -*|--*                  )
         echo "Unknown option: ${1}" >&2
         event_log "error" "Unknown option: ${1}" >&2 ; exit 1
