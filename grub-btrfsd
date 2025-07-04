@@ -9,57 +9,64 @@
 # Support for Timeshift and Snapper is included.
 
 # shellcheck disable=SC2317
-function sign_handler  () {
+function sign_handler () {
 
-    trap '""' SIGINT SIGTERM ; vlog "Parent $$: Received signal SIGINT/ SIGTERM"
-    kill 0 ; wait ; exit 0
+    local _signal; _signal="${1:-SIGINT}"
+
+    if test "${_sysLog}" = "true" ; then
+
+
+    case "${_signal}" in
+        SIGINT|SIGTERM|SIGQUIT  )
+            event_log "info" "Received signal: ${_signal}. Stopping ddnsd service..."
+        ;;
+        *                       )
+            event_log "warning" "Received unknown signal: ${_signal}"
+        ;;
+    esac
+    fi
+
+    exit 0
 
 }
 
-function log () {
+function event_log () {
 
-    echo "${2} ${1}"
+    local _eventType="${1:-info}"
+    local _eventMessage="${2:-No message provided}"
 
-    if test "${sysLog}" = "true" ; then logger -p user.notice -t "${0##*/}" "[$$]" "${1}" ; fi
-    if test "${#logFile}" -gt "1" ; then  echo "$(date) ${1}" >> "${logFile}" ; fi
+    if test "${_sysLog}" = "true" ; then
 
-}
-
-function vlog () {
-
-    if test "${verboseFlag}" = "true" ; then
-        echo "${2} ${1}"
-        if test "${sysLog}" = "true" ; then logger -p user.notice -t "${0##*/}" "$1" ; fi
-        if test "${#logFile}" -gt "1" ; then echo "$(date) ${1}" >> "${logFile}" ; fi
+        case "${_eventType}" in
+            info|warning|error|critical )
+                logger -t "${_appName}" -p user."${_eventType}" "${_eventMessage}"
+            ;;
+            *                           )
+                logger -t "${_appName}" -p user."${_eventType}" "${_eventMessage}"
+            ;;
+        esac
+    else
+        echo "$(date +'%Y-%m-%d %H:%M:%S') [${_eventType}] ${_eventMessage}" >&2
     fi
 
 }
 
-function err () {
-
-    echo "${2} ${1}" >&2
-
-    if test "${sysLog}" = "true" ; then logger -p user.error -t "${0##*/}" "$1" ; fi
-    if test "${#logFile}" -gt "1" ; then echo "$(date) error: ${1}" >> "${logFile}" ; fi
-
-}
 
 function checks () {
 
     # check if inotify exists, see issue #227
     ! command -v inotifywait >/dev/null 2>&1 && {
-    err "[!] Please install inotify-tools and restart the application." >&2 ; exit 1 ;}
+    event_log "error" "Please install inotify-tools and restart the application." >&2 ; exit 1 ;}
 
-    if [ "${timeshiftAuto}" = "false" ] && [ "${timeshiftOld}" = "true" ]; then
-          err "[!] Flag --timeshift-old requires flag --timeshift-auto" >&2
+    if [ "${_timeshiftAuto}" = "false" ] && [ "${_timeshiftOld}" = "true" ]; then
+          event_log "error" "Flag --timeshift-old requires flag --timeshift-auto" >&2
           exit 1
     fi
 
-    if test "${timeshiftAuto}" = "true" ; then
-        for snapDir in "${snapDirs[@]}" ; do
-            if ! [ -d "${snapDir}" ]; then
-                err "[!] No directory found at ${snapDir}" >&2
-                err "[!] Please specify a valid snapshot directory" >&2
+    if test "${_timeshiftAuto}" = "true" ; then
+        for _snapDir in "${_snapDirs[@]}" ; do
+            if ! [ -d "${_snapDir}" ]; then
+                event_log "error" "No directory found at ${_snapDir}" >&2
                 exit 1
             fi
         done
@@ -68,18 +75,18 @@ function checks () {
 
 function setup () {
 
-    if test "${#logFile}" -gt "1" ; then
-        touch "${logFile}" ; echo "GRUB-BTRFSD log $(date)" >> "${logFile}"
+    if test "${#_logFile}" -gt "1" ; then
+        touch "${_logFile}" ; echo "GRUB-BTRFSD  event_log $(date)" >> "${_logFile}"
     fi
 
-    if test "${verboseFlag}" = "true" ; then inotifyQuiet="" ; else inotifyQuiet=" -q -q " ; fi
-    if test "${recursiveFlag}" = "true" ; then inotifyRecursive=" -r " ; else inotifyRecursive="" ; fi
+    if test "${_verboseFlag}" = "true" ; then inotifyQuiet="" ; else inotifyQuiet=" -q -q " ; fi
+    if test "${_recursiveFlag}" = "true" ; then inotifyRecursive=" -r " ; else inotifyRecursive="" ; fi
 
-    if test "${timeshiftAuto}" = "true" ; then
-        watchTime=15
+    if test "${_timeshiftAuto}" = "true" ; then
+        _watchTime=15
         test -d "/run/timeshift" || mkdir /run/timeshift
     else
-        watchTime=0
+        _watchTime=0
     fi
 
 }
@@ -89,16 +96,16 @@ function create_grub_menu () {
     #  create the grub submenu of the whole grub menu, depending on whether the submenu already exists
     #  and gives feedback if it worked
     if grep -q "${NAME:-Linux} snapshots" "${GRUB_BTRFS_GRUB_DIRNAME:-/boot/efi/EFI/${ID}}"/grub.cfg; then
-    	if /etc/grub.d/41_grub-btrfsd ; then
-            log "Grub submenu recreated"
+    	if /etc/grub.d/41_grub-btrfsd 2> /dev/null ; then
+            event_log "info" "Grub submenu created"
         else
-            err "[!] Error during grub submenu creation (grub-btrfsd error)"
+            event_log "error" "ERROR: during grub submenu creation!"
         fi
     else
         if ${GRUB_BTRFS_MKCONFIG:-grub-mkconfig} -o "${GRUB_BTRFS_GRUB_DIRNAME:-/boot/efi/EFI/${ID}}"/grub.cfg ; then
-            log "Grub submenu created"
+            event_log "info" "Grub submenu created"
         else
-            err "[!] Error during grub submenu creation (grub-mkconfig error)"
+            event_log "error" "event_logor during grub submenu creation!"
         fi
     fi
 }
@@ -106,99 +113,80 @@ function create_grub_menu () {
 function set_snapshot_dir () {
 
     # old timeshift has it's snapshot dir in a different location
-    test "${timeshiftOld}" = "true" && snapDir="/run/timeshift/backup/timeshift-btrfs/snapshots" ||
-    snapDir="/run/timeshift/${timeshiftPid}/backup/timeshift-btrfs/snapshots"
+    test "${_timeshiftOld}" = "true" && _snapDir="/run/timeshift/backup/timeshift-btrfs/snapshots" ||
+    _snapDir="/run/timeshift/${_timeshiftPid}/backup/timeshift-btrfs/snapshots"
 
 }
 
 # shellcheck disable=SC2086
 function daemon_function () {
 
-    trap 'vlog "$BASHPID: Received SIGINT/ SIGTERM"; exit 0' SIGINT SIGTERM
-
     # start the actual daemon
-    snapDir="${1}"
-
-    vlog "Sub-daemon function started, PID: ${BASHPID}"
-    vlog "${BASHPID}: Entering infinite while for ${snapDir}"
-    vlog "${BASHPID}: Snapshot dir watch-timeout: ${watchTime}"
+    _snapDir="${1}"
 
     while true; do
-        runs=false
-        if [ ${timeshiftAuto} = true ] && ! [ "${timeshiftPid}" -gt 0 ] ; then
 
-            # watch the timeshift folder for a folder that is created when timeshift starts up
-            sleep 1
-            test "${timeshiftPid}" -eq "-2" && log "${BASHPID}: detected timeshift shutdown"
+        _timeshiftPid=$(ps ax | awk '{sub(/.*\//, "", $5)} $5 ~ /timeshift/ {print $1}')
 
-            timeshiftPid=$(ps ax | awk '{sub(/.*\//, "", $5)} $5 ~ /timeshift/ {print $1}')
+        sleep 1
+        [[ "${_timeshiftPid}" == "-2" ]] &&
+        { event_log "info" "detected timeshift shutdown" ; wait ; exit 0 ; }
 
-            if [ "${#timeshiftPid}" -gt 0 ]; then
-                set_snapshot_dir
-                log "${BASHPID}: detected running Timeshift at daemon startup, PID is: ${timeshiftPid}"
-                vlog "${BASHPID}: new snapshots directory is ${snapDir}"
-            else
-                log "Watching /run/timeshift for timeshift to start"
-                inotifywait ${inotifyQuiet} -e create -e delete /run/timeshift && {
-                    sleep 1
-                    timeshiftPid=$(ps ax | awk '{sub(/.*\//, "", $5)} $5 ~ /timeshift/ {print $1}')
-                    set_snapshot_dir
-                    log "${BASHPID}: detected Timeshift startup, PID is: ${timeshiftPid}"
-                    vlog "${BASHPID}: new snapshots directory is ${snapDir}"
+        # For timeshift the grab menu needs to be created in frocked processes.
+        if [ ${_timeshiftAuto} = true ] && ! [ "${_timeshiftPid}" -gt 0 ] ; then
+            ! set_snapshot_dir || event_log "info" "new snapshots directory is ${_snapDir}"
+            (create_grub_menu)
+        elif [ ${_timeshiftAuto} = true ] ; then
+            event_log "info" "Watching /run/timeshift for timeshift to start"
+            inotifywait ${inotifyQuiet} -e create,delete /run/timeshift &&
+            {
+               _timeshiftPid=$(ps ax | awk '{sub(/.*\//, "", $5)} $5 ~ /timeshift/ {print $1}')
+               ! set_snapshot_dir || event_log "info" "new snapshots directory is ${_snapDir}"
+               (create_grub_menu)
 
-                    # create the grub menu once immediately in a forking process.
-                    # Snapshots from commandline using timeshift --create need this
-                    (create_grub_menu)
-                }
-            fi
-
-            runs=false
-        else
-            while [ -d "${snapDir}" ]; do
-                # watch the actual snapshots folder for a new snapshot or a deletion of a snapshot
-                if [ "${runs}" = "false" ] && [ "${verboseFlag}" = "false" ]; then
-                    log "${BASHPID}: Watching ${snapDir} for new snapshots..."
-                else
-                    vlog "${BASHPID}: Watching ${snapDir} for new snapshots..."
-                fi
-
-                runs=true
-
-                inotifywait ${inotifyQuiet} ${inotifyRecursive} \
-                    -e create -e delete -e unmount -t ${watchTime} ${snapDir} && {
-                    log "${BASHPID}: Detected snapshot creation/ deletion, recreating Grub menu"
-                    sleep 5
-                    create_grub_menu
-                }
-
-                sleep 1
-
-            done
-
-            timeshiftPid=-2
+            }
         fi
 
+        while [ -d "${_snapDir}" ]; do
+
+            event_log "info" "Watching ${_snapDir} for new snapshots..."
+
+            inotifywait ${inotifyQuiet} ${inotifyRecursive} -e create,delete,unmount -t ${_watchTime} ${_snapDir} &&
+            {
+                event_log "info" "Detected snapshot change in ${_snapDir}."
+                create_grub_menu
+            }
+
+            sleep 1
+
+        done
+
         # in case someone deletes the snapshots folder (in snapper mode) to prevent the while loop from going wild
-        if ! [ ${timeshiftAuto} = true ] && ! [ -d "${snapDir}" ] ; then
+        if ! [ ${_timeshiftAuto} = true ] && ! [ -d "${_snapDir}" ] ; then
             break
         fi
     done
 }
 
+# Debugging options
+#set -x
 set -eo pipefail
 
-packageName="grub-btrfsd"
+_appName="grub-btrfsd"
 
 # init
-timeshiftPid=-1
-watchTime=0
-logFile=0
-timeshiftAuto=false
-timeshiftOld=false
-verboseFlag=false
-sysLog=false
-recursiveFlag=false
-trap sign_handler SIGINT SIGTERM
+_timeshiftPid=-1
+_watchTime=0
+_logFile=0
+_timeshiftAuto=false
+_timeshiftOld=false
+_verboseFlag=false
+_sysLog=false
+_recursiveFlag=false
+
+
+# Trap event_logors and event_log them
+trap sign_handler SIGINT SIGTERM SIGQUIT
 
 sysConfig="/etc"
 grubBtrfsdConfig="${sysConfig}/default/grub-btrfsd"
@@ -213,7 +201,7 @@ test -f "${sysConfig}/os-release" && source "${sysConfig}/os-release"
 test -f "${sysConfig}/default/grub" && source "${sysConfig}/default/grub"
 
 versionInfo="$(cat <<EOF
-${packageName} - version - ${GRUB_BTRFS_VERSION}) | Update GRUB when new BTRFS snapshots are created.
+${_appName} - version - ${GRUB_BTRFS_VERSION}) | Update GRUB when new BTRFS snapshots are created.
 Copyright (c) 2023 Pascal Jaeger - 2025 Michael Lee Schaecher under the GPL-3.0 license
 EOF
 )"
@@ -222,52 +210,49 @@ EOF
 helpInfo="$(cat <<EOF
 ${versionInfo}
 
-Usage: ${packageName} [OPTIONS]* SNAPSHOTS_DIRS
+Usage: ${_appName} [OPTIONS]* SNAPSHOTS_DIRS
 
 Optional arguments:
-    -l, --log-file          Specify a logFile to write to
+    -l, --log-file          Specify a   event__logFile to write to
     -r, --recursive         Watch snapshots directory recursively
     -s, --sysLog            Write to sysLog
     -o, --timeshift-old     Look for snapshots in directory of Timeshift <v22.06 (requires --timeshift-auto)
     -t, --timeshift-auto    Automatically detect Timeshift snapshots (requires Timeshift)
-    -v, --verbose           Let the log of the daemon be more verboseFlag
+    -v, --verbose           Let the event_log of the daemon be more _verboseFlag
     -h, --help              Display this message
     -V, --version           Display version information
 EOF
 )"
 
+# shellcheck disable=SC2221
+# shellcheck disable=SC2222
 while true ; do case "${1}" in
-    -l | --log-file         ) logFile="${2}"        ; shift 2 ;;
-    -r | --recursive        ) recursiveFlag=true    ; shift   ;;
-    -s | --sysLog           ) sysLog=true           ; shift   ;;
-    -o | --timeshift-old    ) timeshiftOld=true     ; shift   ;;
-    -t | --timeshift-auto   ) timeshiftAuto=true    ; shift   ;;
-    -v | --verbose          ) verboseFlag=true      ; shift   ;;
+    -l | --log-file         ) _logFile="${2}"       ; shift 2 ;;
+    -r | --recursive        ) _recursiveFlag=true   ; shift   ;;
+    -s | --syslog           ) _sysLog=true          ; shift   ;;
+    -o | --timeshift-old    ) _timeshiftOld=true    ; shift   ;;
+    -t | --timeshift-auto   ) _timeshiftAuto=true   ; shift   ;;
+    -v | --verbose          ) _verboseFlag=true     ; shift   ;;
     -h | --help             ) echo "${helpInfo}"    ; exit 0  ;;
     -V | --version          ) echo "${versionInfo}" ; exit 0  ;;
+    -*|--*                  )
+        echo "Unknown option: ${1}" >&2
+        event_log "error" "Unknown option: ${1}" >&2 ; exit 1
+    ;;
     *                       ) break                           ;;
 esac ; done
 
-snapDirs=( "${@}" )
-
-vlog "Arguments:"
-vlog "Snapshot directories: ${snapDirs[*]}"
-vlog "Timeshift auto detection: ${timeshiftAuto}"
-vlog "Timeshift old: ${timeshiftOld}"
-vlog "Logfile: ${logFile}"
-vlog "Recursive: ${recursiveFlag}"
+_snapDirs=( "${@}" )
 
 checks
 setup
 
-log  "grub-btrfsd starting up..."
-
-if [ "${timeshiftAuto}" = "true" ] ; then
+if [ "${_timeshiftAuto}" = "true" ] ; then
         daemon_function "timeshift" &
 else
     # for all dirs that got passed to the script, start a new fork with that dir
-    for snapDir in "${snapDirs[@]}" ; do
-        vlog "starting daemon watching ${snapDir}..." ; daemon_function "${snapDir}" &
+    for _snapDir in "${_snapDirs[@]}" ; do
+        event_log "info" "starting daemon watching ${_snapDir}..." ; daemon_function "${_snapDir}"
     done
 fi
 
