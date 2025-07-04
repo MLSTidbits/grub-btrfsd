@@ -110,7 +110,7 @@ function manual_install () {
 function Initialize_build () {
 
     # Manually required system packages
-    _required=( debhelper dh-vmake git dpkg-changelog pandoc )
+    _required=( debhelper dh-make git dpkg-changelog pandoc )
 
     _missing=()
 
@@ -139,6 +139,7 @@ function Initialize_build () {
         echo -e "\n\n\033[31mThe following packages are missing:\033[0m"
         for pkg in "${_missing[@]}"; do echo -e "  - $pkg" ; done
         echo -e "\nPlease install them using your package manager (e.g. \`sudo apt install <package>\`)"
+        exit 1
     fi
 
     echo "" ; dpkg-changelog ; echo -e "\n\n\033[32mBuild environment initialized successfully!\033[0m\n"
