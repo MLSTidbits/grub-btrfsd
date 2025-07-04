@@ -1,12 +1,21 @@
 .vscode/
 
 build/
+dist/
+
+changelog
 
 *.gz
-*.xz
 *.deb
-*.tar
-dist/
-changelog
-version
-md5sums
+
+# Ignore the from a dpkg-buildpackage run
+debian/.debhelper/
+debian/grub-*/
+debian/grub-*
+debian/files
+
+debian/*.ex
+docs/version
+
+debian/grub-btrfsd
+debian/grub-btrfsd.*
