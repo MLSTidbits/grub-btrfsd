@@ -51,13 +51,66 @@ function manual_install () {
 
     echo "Installing the application..."
 
-    [ -n "$_gpg_id" ] || { echo "GPG signing ID is not specified!" ; exit 1 ; }
+    # shellcheck disable=SC1076
+    # shellcheck disable=SC1072
+    source /etc/os-release || { echo "Missing /etc/os-release file." ; exit 1 ; }
+
+    echo -e "Detected OS: \033[1m$NAME\033[0m\n"
+
+    (( "$(id -u)" == 0 )) || { echo "$_rootInstructions" ; exit 1 ; }
+
+    install -vm 644 -D "$_app_conf" "$_etc_dir/"
+    install -vm 644 -D "$_app" "$_app_bin/"
+    install -vm 644 -D "$_app_service" "$_systemd_dir/"
+    install -vm 644 -D "$_app_completion" "$_bash_completion/"
+    install -vm 644 -D "$_copyright" "$_docs/"
+    install -vm 644 -D "$_readme" "$_docs/"
+    install -vm 644 -D "$_coc" "$_docs/"
+    install -vm 644 -D "$_version" "$_docs/"
+
+    if command -v pandoc &>/dev/null ; then
+        for m in man/*.md; do
+            base=$(basename "$m" .md)
+            out="${BUILD_DIR}/usr/share/man/man8/${base}"
+            pandoc "$m" -s -t man -o "$out"
+            gzip -f9 "$out"
+            echo "Installed manpage: $out.gz"
+        done
+    else
+        echo -e "\033[31mPandoc is not installed. Skipping manpage installation.\033[0m"
+    fi
+
+    echo ""
+
+    # enable the service
+    case "$(systemctl is-enabled $_app_name.service)" in
+        enabled|static                  )
+            echo -e "\033[32mService $_app_name is already enabled.\033[0m"
+        ;;
+        disabled|inactive               )
+            echo -e "\033[33mEnabling service $_app_name...\033[0m"
+            systemctl enable --now "$_app_name.service"
+        ;;
+        dead|failed)
+            echo -e "\033[31mService $_app_name is dead or failed.\033[0m"
+            echo -e "Please check the service status with \`systemctl status $_app_name.service\`"
+            exit 1
+        ;;
+        not-found|unknown               )
+            echo -e "\033[31mService $_app_name does not exist.\033[0m"
+            exit 1
+        ;;
+        *                       )
+            echo -e "\033[31mService $_app_name is not enabled.\033[0m"
+        ;;
+    esac
+
 }
 
 function Initialize_build () {
 
     # Manually required system packages
-    _required=( debhelper dh-make git dpkg-changelog pandoc )
+    _required=( debhelper dh-vmake git dpkg-changelog pandoc )
 
     _missing=()
 
