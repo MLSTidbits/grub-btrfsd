@@ -24,7 +24,6 @@
 app_name = grub-btrfsd
 
 app = $(CURDIR)/$(app_name)
-app_conf = $(CURDIR)/grub_btrfsd
 app_service = $(CURDIR)/$(app_name).service
 app_completion = $(CURDIR)/completion/$(app_name)
 
@@ -33,6 +32,9 @@ readme = $(CURDIR)/README.md
 coc = $(CURDIR)/CODE_OF_CONDUCT.md
 
 version = $(CURDIR)/docs/version
+
+app_conf = $(CURDIR)/grub_btrfsd
+grub_d_conf = $(CURDIR)/41_${app_name}
 
 # The manpage is written in Markdown format and requires pandoc to convert it.
 app_man = $(CURDIR)/man
@@ -58,7 +60,7 @@ clean:
 directories:
 
 install: build clean $(app) $(app_conf) $(app_service) $(app_completion) $(copyright) \
-	$(readme) $(coc) $(version) $(app_man)
+	$(readme) $(coc) $(version) $(app_man) ${grub_d_conf}
 
 	dh_testdir
 	dh_testroot
@@ -77,7 +79,10 @@ install: build clean $(app) $(app_conf) $(app_service) $(app_completion) $(copyr
 	install -m 644 man/*.1.gz $(man)/
 
 	install -m 755 $(app) $(app_bin)/$(app_name)
+
 	install -m 644 $(app_conf) $(etc_dir)/
+	install -m 755 $(grub_d_conf) $(etc_dir)/grub.d/
+
 	install -m 644 $(app_service) $(systemd_dir)/
 	install -m 644 $(copyright) $(docs)/copyright
 	install -m 644 $(readme) $(docs)/README.md
