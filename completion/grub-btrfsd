@@ -1,0 +1,18 @@
+# shellcheck disable=SC2148
+_grub_btrfsd () {
+
+    local cur prev commands
+    cur="${COMP_WORDS[COMP_CWORD]}"
+
+    # shellcheck disable=SC2034
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    # Main commands
+    commands="-l --log-file -r --recursive -s --syslog"
+    commands+=" -o --timeshift-old -t --timeshift-auto -v --verbose"
+
+    mapfile -t COMPREPLY < <(compgen -W "${commands}" -- "${cur}")
+}
+
+# Register the completion function for grub-btrfsd
+complete -F _grub_btrfsd grub-btrfsd
