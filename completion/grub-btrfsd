@@ -8,8 +8,7 @@ _grub_btrfsd () {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     # Main commands
-    commands="-l --log-file -r --recursive -s --syslog"
-    commands+=" -o --timeshift-old -t --timeshift-auto -v --verbose"
+    commands="-r --recursive -s --syslog -o --timeshift-old -t --timeshift-auto -v --verbose"
 
     mapfile -t COMPREPLY < <(compgen -W "${commands}" -- "${cur}")
 }
