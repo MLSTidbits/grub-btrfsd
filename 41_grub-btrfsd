@@ -588,7 +588,7 @@ function boot_separate () {
 set -eo pipefail
 
 sysconfdir="/etc"
-grub_btrfs_config="${sysconfdir}/default/grub-btrfsd"
+grub_btrfs_config="${sysconfdir}/default/grub_btrfsd"
 
 # shellcheck disable=SC1090
 [ -f "$grub_btrfs_config" ] && . "$grub_btrfs_config"

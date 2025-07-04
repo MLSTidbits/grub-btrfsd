@@ -189,7 +189,7 @@ _recursiveFlag=false
 trap sign_handler SIGINT SIGTERM SIGQUIT
 
 sysConfig="/etc"
-grubBtrfsdConfig="${sysConfig}/default/grub-btrfsd"
+grubBtrfsdConfig="${sysConfig}/default/grub_btrfsd"
 
 # shellcheck disable=SC1090
 test -f "$grubBtrfsdConfig" && source "${grubBtrfsdConfig}"
