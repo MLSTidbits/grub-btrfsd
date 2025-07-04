@@ -1,6 +1,11 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2034
-GRUB_BTRFS_VERSION="$(cat /usr/share/doc/grub-btrfsd/version)"
+
+
+# shellcheck disable=SC1091
+[ -f /etc/os-release ] && source /etc/os-release
+
+GRUB_BTRFSD_VERSION="$(cat /usr/share/doc/grub-btrfsd/version)"
 
 # Disable grub-btrfs.
 # Default: "false"
@@ -100,7 +105,7 @@ GRUB_BTRFS_IGNORE_PREFIX_PATH=("var/lib/docker" "@var/lib/docker" "@/var/lib/doc
 
 # Location of the folder containing the "grub.cfg" file.
 # Might be grub2 on some systems.
-# Default: "/boot/grub"
+# Default: "/boot/efi/EFI/${ID}"
 #GRUB_BTRFS_GRUB_DIRNAME="/boot/grub2"
 
 # Location of kernels/initramfs/microcode.
