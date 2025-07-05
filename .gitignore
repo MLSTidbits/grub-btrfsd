@@ -10,12 +10,12 @@ changelog
 
 # Ignore the from a dpkg-buildpackage run
 debian/.debhelper/
-debian/grub-*/
-debian/grub-*
 debian/files
 
 debian/*.ex
 docs/version
 
-debian/grub-btrfsd
-debian/grub-btrfsd.*
+debian/grub-btrfsd/
+
+doc/man/grub-btrfsd.1
+doc/man/grub-btrfsd.conf.5
