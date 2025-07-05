@@ -18,7 +18,7 @@ when a new btrfs snapshot is created.
 
 # SYNOPSIS
 
-`grub-btrfsd [-h, --help] [-c, --no-color] [-l, --log-file LOG_FILE] [-r, --recursive] [-s, --syslog] [-t, --timeshift-auto] [-o, --timeshift-old] [-v, --verbose] SNAPSHOTS_DIRS`
+`grub-btrfsd [-h, --help] [-c, --no-color] [-r, --recursive] [-s, --syslog] [-t, --timeshift-auto] [-o, --timeshift-old] [-v, --verbose] SNAPSHOTS_DIRS`
 
 # DESCRIPTION
 
@@ -29,9 +29,6 @@ Grub-btrfsd is a shell script which is meant to be run as a daemon. Grub-btrfsd 
 ## `SNAPSHOTS_DIRS`
 
 This argument specifies the (space separated) paths where grub-btrfsd looks for newly created snapshots and snapshot deletions. It is usually defined by the program used to make snapshots. E.g. for Snapper this would be `/.snapshots`. It is possible to define more than one directory here, all directories will inherit the same settings (recursive etc.). This argument is not necessary to provide if `--timeshift-auto` is set.
-
-_-c_, _--no-color_
-: Disable colors in output.
 
 _-r_  _--recursive_
 : Watch snapshot directories recursively. This is useful if the snapshots are stored in subdirectories of the specified directories. If this flag is not set, only the specified directories are watched.
