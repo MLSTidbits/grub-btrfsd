@@ -1,9 +1,10 @@
 <div
-  align="center">
+  align="right">
   <image
-    src="image/logo.svg"
+    src="image/logo.png"
     alt="grub-btrfsd logo"
-    style="display: block; margin: 0 auto;"
+    width="auto"
+    height="360"
   />
 </div>
 
