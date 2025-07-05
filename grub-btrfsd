@@ -74,10 +74,6 @@ function checks () {
 
 function setup () {
 
-    if test "${#_logFile}" -gt "1" ; then
-        touch "${_logFile}" ; echo "GRUB-BTRFSD  event_log $(date)" >> "${_logFile}"
-    fi
-
     if test "${_verboseFlag}" = "true" ; then inotifyQuiet="" ; else inotifyQuiet=" -q -q " ; fi
     if test "${_recursiveFlag}" = "true" ; then inotifyRecursive=" -r " ; else inotifyRecursive="" ; fi
 
@@ -210,8 +206,7 @@ ${versionInfo}
 
 Usage: ${_appName} [OPTIONS]* SNAPSHOTS_DIRS
 
-Optional arguments:
-    -l, --log-file          Specify a   event__logFile to write to
+Optional:
     -r, --recursive         Watch snapshots directory recursively
     -s, --sysLog            Write to sysLog
     -o, --timeshift-old     Look for snapshots in directory of Timeshift <v22.06 (requires --timeshift-auto)

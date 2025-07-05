@@ -120,14 +120,6 @@ This argument specifies the (space separated) paths where grub-btrfsd looks for 
 E.g. for Snapper or Yabsnap this would be `/.snapshots`. It is possible to define more than one directory here, all directories will inherit the same settings (recursive etc.).
 This argument is not necessary to provide if `--timeshift-auto` is set.
 
-**`-c / --no-color`**
-
-> Disable colors in output.
-
-**`-l / --log-file`**
-
-> This arguments specifies a file where grub-btrfsd should write log messages.
-
 **`-r / --recursive`**
 
 > Watch the snapshots directory recursively
