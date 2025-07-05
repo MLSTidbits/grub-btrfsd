@@ -1,8 +1,8 @@
 ---
-title: GRUB-BTRFSD-CONF
-section: 1
+title: GRUB-BTRFSD.CONF
+section: 5
 header: User Commands
-footer: grub-btrfsd-conf(1)
+footer: grub-btrfsd.conf(5)
 date: 2025-03-29
 author:
     - Michael Lee Schaecher
