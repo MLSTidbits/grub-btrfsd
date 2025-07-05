@@ -21,82 +21,49 @@
 #	-DCMAKE_LIBRARY_PATH=$(DEB_HOST_MULTIARCH)
 
 # what is being installed
+
+# Package variables
 app_name = grub-btrfsd
 
+# Source files
 app = $(CURDIR)/$(app_name)
-app_service = $(CURDIR)/$(app_name).service
-app_completion = $(CURDIR)/completion/$(app_name)
-
-copyright = $(CURDIR)/COPYING
-readme = $(CURDIR)/README.md
-coc = $(CURDIR)/CODE_OF_CONDUCT.md
-
-version = $(CURDIR)/docs/version
-
 app_conf = $(CURDIR)/grub_btrfsd
 grub_d_conf = $(CURDIR)/41_$(app_name)
 
-# The manpage is written in Markdown format and requires pandoc to convert it.
-app_man = $(CURDIR)/man
+# Installation directories
+pkg_dir = $(CURDIR)/debian/$(app_name)
+conf_dir = $(pkg_dir)/etc/default
+grub_d_dir = $(pkg_dir)/etc/grub.d
+app_bin = $(pkg_dir)/usr/bin
 
-# The directories where the files will be installed.
-conf_dir = $(CURDIR)/debian/$(app_name)/etc/default
-grub_d_dir = $(CURDIR)/debian/$(app_name)/etc/grub.d
-docs = $(CURDIR)/debian/$(app_name)/usr/share/doc/$(app_name)
-app_bin = $(CURDIR)/debian/$(app_name)/usr/bin
-bash_completion = $(CURDIR)/debian/$(app_name)/usr/share/bash-completion/completions
-man = $(CURDIR)/debian/$(app_name)/usr/share/man/man1
-systemd_dir = $(CURDIR)/debian/$(app_name)/usr/lib/systemd/system
-
+%:
+	dh $@
 
 build: build-stamp
 
 build-stamp:
 	dh_auto_build
-	touch build-stamp
+	touch $@
 
 clean:
 	dh_auto_clean
 	rm -f build-stamp
 
-directories:
-
-install: build clean $(app) $(app_conf) $(app_service) $(app_completion) $(copyright) \
-	$(readme) $(coc) $(version) $(app_man) ${grub_d_conf}
-
+install: build clean
 	dh_testdir
 	dh_testroot
 	dh_prep
 	dh_installdirs
 
-	mkdir -m 755 -p $(conf_dir) $(grub_d_dir) $(docs) \
-		$(app_bin) $(bash_completion) $(man) $(systemd_dir) \
-
-
-	# Need to convert the Markdown manpage with pandoc.
-	@pandoc man/$(app_name).1.md -s -t man -o man/$(app_name).1
-	@pandoc man/$(app_name)-conf.1.md -s -t man -o man/$(app_name)-conf.1
-
-	gzip -vf9 man/$(app_name).1
-	gzip -vf9 man/$(app_name)-conf.1
-
-	install -m 644 man/*.1.gz $(man)/
-
-	install -m 755 -D $(app) $(app_bin)/$(app_name)
-
+	install -m 755 $(app) $(app_bin)/
 	install -m 644 $(app_conf) $(conf_dir)/
 	install -m 755 $(grub_d_conf) $(grub_d_dir)/
 
-	install -m 644 $(app_service) $(systemd_dir)/
-	install -m 644 $(copyright) $(docs)/
-	install -m 644 $(readme) $(docs)/
-	install -m 644 $(coc) $(docs)/
-	install -m 644 $(version) $(docs)/
-	install -m 644 $(app_completion) $(bash_completion)/
-
 binary-indep: install
 	dh_installdocs
-	dh_installchangelogs $(changelog)
+	dh_bash-completion
+	dh_installchangelogs
+	dh_installsystemd --restart-after-upgrade
 	dh_installman
 	dh_installmime
 	dh_link
@@ -111,4 +78,5 @@ binary-indep: install
 binary-arch: build install
 
 binary: binary-indep binary-arch
+
 .PHONY: build clean install binary-indep binary-arch binary

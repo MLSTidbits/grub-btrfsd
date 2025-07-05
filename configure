@@ -7,9 +7,8 @@ function check_installed () { dpkg -s "$1" &>/dev/null ; }
 
 function reset_env () {
     rm -rv debian/.* debian/"$(basename "$(pwd)")" \
-        debian/"$(basename "$(pwd)")".* debian/files \
-        debian/{changelog,changelog.gz} 2>/dev/null \
-        man/*.gz|| true
+        debian/files \ debian/{changelog,changelog.gz} 2>/dev/null \
+        man/*.gz doc/man/"$(basename "$(pwd)")".{1,conf.5} || true
 }
 
 function build_deb () {
@@ -142,6 +141,12 @@ function Initialize_build () {
         exit 1
     fi
 
+    for m in doc/man/*.md; do \
+		base=$(basename "$m" .md)
+		out="doc/man/${base}"
+		pandoc "$m" -s -t man -o "$out"
+	done
+
     echo "" ; dpkg-changelog ; echo -e "\n\n\033[32mBuild environment initialized successfully!\033[0m\n"
 
     echo -e "You can now build the package using \`$0 build\`"
@@ -187,10 +192,10 @@ EOF
 _helpInfo="$(cat <<-EOF
 Configure script for the Polka-Dots Dark GRUB theme.
 
-Usage: $0 [options]
+Usage: $0 [options] flags ARG..
 
 Options:
-    --build         Build the DEB package using dpkg-buildpackage. if no other
+    build           Build the DEB package using dpkg-buildpackage. if no other
                     options are specified the build may fail.
 
     --gpg-id        Specify the GPG key ID to sign the package. This option over-
@@ -198,18 +203,26 @@ Options:
 
     --no-sign       Do not sign the package. This options is overridden by --gpg-id.
 
-    --init          Initialize the build environment. The required packages will
+    init            Initialize the build environment. The required packages will
                     be checked and the build environment will be set up. Including
                     the HowToNebie APT repository and the dpkg-changelog is
                     installed
 
-    --install       Install the application, useful for non Debian/Ubuntu systems.
+    install         Install the application, useful for non Debian/Ubuntu systems.
                     This option requires root privileges.
 
-    --reset         Reset the build environment.
+    reset           Reset the build environment.
 
-    --help          Show this help message and exit.
+    help            Show this help message and exit.
 
+Build Flags:
+    --gpg-id        Specify the GPG key ID to sign the package. This option over-
+                    rides the --no-sign option.
+    --no-sign       Do not sign the package. This options is overridden by --gpg-id.
+
+Examples:
+    $0 build --gpg-id YOUR_GPG_ID
+    $0 build --no-sign
 EOF
 )"
 
