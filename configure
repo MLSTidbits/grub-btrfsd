@@ -10,13 +10,14 @@ function reset_env () {
         debian/*.substvars \
         debian/*.ex \
         debian/*.debhelper \
-        man/"$(basename "$(pwd)")".{1,conf.5,8} || true
+        man/"$(basename "$(pwd)")".{1,conf.5,8} \
+        doc/version || true
 
         # shellcheck disable=SC2181
         if [ "$?" -eq 0 ] ; then
-            echo -e "\033[32mEnvironment reset successfully.\033[0m"
+            echo -e "Environment reset successfully $_pass"
         else
-            echo -e "\033[31mFailed to reset the environment.\033[0m"
+            echo -e "Failed to reset the environment $_fail"
             exit 1
         fi
 }
