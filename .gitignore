@@ -8,14 +8,15 @@ changelog
 *.gz
 *.deb
 
-# Ignore the from a dpkg-buildpackage run
+# Ignore the following from the `debian` directory since
+# they are generated during the build process and should
+# not be committed to the repository.
 debian/.debhelper/
 debian/files
-
 debian/*.ex
-docs/version
-
+debian/*.debhelper
+debian/*.substvars
 debian/grub-btrfsd/
 
-doc/man/grub-btrfsd.1
-doc/man/grub-btrfsd.conf.5
+doc/version
+man/dh_gitchangelog.conf.5
