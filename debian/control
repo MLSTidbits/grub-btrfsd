@@ -4,8 +4,7 @@ Priority: optional
 Maintainer: Michael Schaecher <michaelleeschaecher@gmail.com>
 Rules-Requires-Root: no
 Build-Depends:
- debhelper (>= 10), systemd, dh-make, git, dpkg-changelog,
- pandoc
+ debhelper (>= 10), dh-make, git, dh-gitchangelog, pandoc
 Standards-Version: 4.6.2
 Homepage: https://github.com/MichaelSchaecher/grub-btrfsd
 Vcs-Browser: https://github.com/MichaelSchaecher/grub-btrfsd
@@ -14,7 +13,8 @@ Vcs-Git: https://github.com/MichaelSchaecher/grub-btrfsd.git
 Package: grub-btrfsd
 Architecture: any
 Multi-Arch: foreign
-Depends: btrfs-progs, grub-common, grub2-common, inotify-tools
+Depends:
+ btrfs-progs, grub-common, grub2-common, inotify-tools
 Recommends: timeshift, snapper, btrfsnapd
 Description: Add BTRFS snapshots to Grub boot menu -
  This package provides a daemon that monitors BTRFS snapshots and adds them to
