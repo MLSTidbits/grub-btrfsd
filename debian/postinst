@@ -1,0 +1,26 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+    configure|upgrade                            )
+        deb-systemd-helper unmask 'grub-btrfsd.service' >/dev/null || true
+        if deb-systemd-helper --quiet was-enabled 'grub-btrfsd.service'; then
+            deb-systemd-helper enable 'grub-btrfsd.service' >/dev/null || true
+        else
+            deb-systemd-helper update-state 'grub-btrfsd.service' >/dev/null || true
+        fi
+
+        # Reload systemd and start or restart services
+        if [ -d /run/systemd/system ]; then
+            systemctl --system daemon-reload >/dev/null || true
+            [ -n "$2" ] && _dh_action=restart || _dh_action=start
+            deb-systemd-invoke $_dh_action 'grub-btrfsd.service' >/dev/null || true
+        fi
+    ;;
+    failed-upgrade                               ) ;;
+    abort-upgrade|abort-deconfigure|abort-remove ) ;;
+    *                                            )
+        echo "Unsupported option $1" ; exit 1
+    ;;
+esac

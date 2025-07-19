@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+    remove|upgrade  )
+        [ -z "${DPKG_ROOT:-}" ] && [ -d /run/systemd/system ] && {
+        systemctl --system daemon-reload >/dev/null || true ; }
+    ;;
+    failed-upgrade  ) ;;
+    *               )
+        echo "Unsupported option $1" >&2 ; exit 1 ;;
+
+esac
