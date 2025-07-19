@@ -10,7 +10,7 @@ function reset_env () {
         debian/*.substvars \
         debian/*.ex \
         debian/*.debhelper \
-        man/"$(basename "$(pwd)")".{1,5,8} || true
+        man/"$(basename "$(pwd)")".{1,conf.5,8} || true
 
         # shellcheck disable=SC2181
         if [ "$?" -eq 0 ] ; then
