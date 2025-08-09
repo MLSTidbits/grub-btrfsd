@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: MLS Tidbits <contact@mlstidbits.com>
 Rules-Requires-Root: no
 Build-Depends:
- debhelper-compact (= 13), dh-make, git, dh-gitchangelog, pandoc
+ debhelper-compat (= 13), dh-make, git, dh-gitchangelog, pandoc
 Standards-Version: 4.6.2
 Homepage: https://mlstidbits.com
 Vcs-Browser: https://github.com/MLSTidbits/grub-btrfsd
