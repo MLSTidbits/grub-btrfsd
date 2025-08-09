@@ -1,20 +1,17 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2023 Pascal Jaeger - 2025 Michael Lee Schaecher under the GPL-3.0 license
-
 # This script is a written and designed to be update the GRUB menu when new BTRFS snapshots
 # are created. It is designed to be run as a daemon and watches the snapshot directory for
 # for any changes.
 
 # Support for Timeshift and Snapper is included.
 
-# shellcheck disable=SC2317
+# shellcheck disable=SC2329
 function sign_handler () {
 
     local _signal; _signal="${1:-SIGINT}"
 
     if test "${_sysLog}" = "true" ; then
-
 
     case "${_signal}" in
         SIGINT|SIGTERM|SIGQUIT  )
