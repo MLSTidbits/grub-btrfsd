@@ -36,6 +36,9 @@ clean:
 	rm -f build-stamp
 
 install: build clean
+	dh_testdir
+	dh_testroot
+	dh_prep
 
 binary-indep: install
 	dh_install
@@ -44,7 +47,7 @@ binary-indep: install
 	dh_installchangelogs
 	dh_installsystemd
 	dh_lintian
-	dh_markdownmanpages
+	dh_installmanpage
 	dh_installmime
 	dh_link
 	dh_strip
