@@ -1,0 +1,3 @@
+src/grub-btrfsd usr/bin/
+src/conf/grub_btrfsd etc/default/
+src/conf/41_grub_btrfsd etc/grub.d/

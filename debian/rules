@@ -22,20 +22,6 @@
 
 # what is being installed
 
-# Package variables
-app_name = grub-btrfsd
-
-# Source files
-app = $(CURDIR)/src/grub-btrfsd
-app_conf = $(CURDIR)/src/conf/grub_btrfsd
-grub_conf = $(CURDIR)/src/conf/41_grub_btrfsd
-
-# Installation directories
-pkg_dir = $(CURDIR)/debian/$(app_name)
-app_bin = $(pkg_dir)/usr/bin
-conf_dir = $(pkg_dir)/etc/default
-conf_grub_dir = $(pkg_dir)/etc/grub.d
-
 %:
 	dh $@
 
@@ -50,22 +36,15 @@ clean:
 	rm -f build-stamp
 
 install: build clean
-	dh_testdir
-	dh_testroot
-	dh_prep
-	dh_installdirs
-
-	install -m 755 $(app) $(app_bin)/
-	install -m 644 $(app_conf) $(conf_dir)/
-	install -m 644 $(grub_conf) $(conf_grub_dir)/
 
 binary-indep: install
+	dh_install
 	dh_installdocs
 	dh_bash-completion
 	dh_installchangelogs
 	dh_installsystemd
 	dh_lintian
-	dh_installman
+	dh_markdownmanpages
 	dh_installmime
 	dh_link
 	dh_strip
