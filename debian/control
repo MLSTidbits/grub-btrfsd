@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: MLS Tidbits <contact@mlstidbits.com>
 Rules-Requires-Root: no
 Build-Depends:
- debhelper-compat (= 13), dh-make, git, dh-gitchangelog, pandoc
+ debhelper-compat (= 13), dh-make, git, boa, pandoc
 Standards-Version: 4.6.2
 Homepage: https://mlstidbits.com
 Vcs-Browser: https://github.com/MLSTidbits/grub-btrfsd
@@ -16,8 +16,27 @@ Multi-Arch: foreign
 Depends:
  btrfs-progs, grub-common, grub2-common, inotify-tools
 Suggests: snapper, snapper-gui, btrfsnapd
+Conflicts: grub-btrfsd (<= 19.0.3)
 Description: Add BTRFS snapshots to Grub boot menu -
  This package provides a daemon that monitors BTRFS snapshots and adds them to
  the Grub boot menu. Compatible with both Timeshift, Snapper, btrfsnapd.
  .
   Take advantage of BTRFS snapshots capabilities.
+
+Package: grub-btrfsd-docs
+Architecture: all
+Depends: grub-btrfsd
+Description: Documentation for grub-btrfsd -
+ This package provides documentation for grub-btrfsd, including installation
+ instructions, usage guides, and troubleshooting tips.
+ .
+ Learn how to use grub-btrfsd effectively.
+
+Package: grub-btrfsd-man
+Architecture: all
+Depends: grub-btrfsd
+Description: Manual pages for grub-btrfsd -
+ This package provides manual pages for grub-btrfsd, detailing its commands,
+ options, and configuration.
+ .
+ Access comprehensive manual pages for grub-btrfsd.
