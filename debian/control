@@ -15,7 +15,7 @@ Architecture: any
 Multi-Arch: foreign
 Depends:
  btrfs-progs, grub-common, grub2-common, inotify-tools
-Suggests: snapper, snapper-gui, btrfsnapd
+Suggests: btrfsnapd, grub-btrfsd-docs, grub-btrtfsd-man
 Conflicts: grub-btrfsd (<= 19.0.3)
 Description: Add BTRFS snapshots to Grub boot menu -
  This package provides a daemon that monitors BTRFS snapshots and adds them to
