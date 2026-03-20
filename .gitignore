@@ -23,3 +23,5 @@ debian/grub-btrfsd-man/
 doc/version
 man/grub-btrfsd.conf.5
 man/grub-btrfsd.1
+
+_build/
