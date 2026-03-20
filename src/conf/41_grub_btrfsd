@@ -675,7 +675,11 @@ boot_device=$(${grub_probe} --target=device ${boot_directory})
 boot_uuid=$(${grub_probe} --device ${boot_device} --target="fs_uuid" 2>/dev/null)
 
 # If boot folder isn't a subvolume, then UUID=root_uuid_subvolume
-boot_uuid_subvolume=$(btrfs subvolume show "$boot_directory" 2>/dev/null) || boot_uuid_subvolume=" UUID: $root_uuid_subvolume"
+boot_uuid_subvolume="$(
+    btrfs subvolume show "${boot_directory}" 2>/dev/null | \
+        awk -F':' '/^\s*UUID/ {gsub(/^[ \t]+/, "", $2); print $2; exit}'
+)"
+[ -z "$boot_uuid_subvolume" ] && boot_uuid_subvolume="$root_uuid_subvolume"
 # UUID of the boot subvolume '
 boot_uuid_subvolume=$(awk -F":" 'match($1, /(^[ \t]+UUID)/) {sub(/^[ \t]+/, "", $2); print $2}' <<< "$boot_uuid_subvolume")
 
