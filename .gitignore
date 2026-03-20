@@ -17,6 +17,8 @@ debian/*.ex
 debian/*.debhelper
 debian/*.substvars
 debian/grub-btrfsd/
+debian/grub-btrfsd-docs/
+debian/grub-btrfsd-man/
 
 doc/version
 man/grub-btrfsd.conf.5
